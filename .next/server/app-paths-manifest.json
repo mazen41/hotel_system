@@ -1,10 +1,6 @@
 {
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/dashboard/reservations/calendar/page": "app/dashboard/reservations/calendar/page.js",
-  "/dashboard/users/page": "app/dashboard/users/page.js",
-  "/dashboard/rooms/page": "app/dashboard/rooms/page.js",
-  "/dashboard/room-types/page": "app/dashboard/room-types/page.js",
-  "/dashboard/rate-plans/page": "app/dashboard/rate-plans/page.js",
-  "/dashboard/billing/folios/page": "app/dashboard/billing/folios/page.js",
-  "/dashboard/availability/page": "app/dashboard/availability/page.js"
+  "/login/page": "app/login/page.js",
+  "/dashboard/housekeeping/page": "app/dashboard/housekeeping/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

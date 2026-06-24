@@ -23,9 +23,45 @@ export default function HousekeepingPage() {
     setLoading(true);
     try {
       const response = await housekeepingApi.board(format(currentDate, 'yyyy-MM-dd'));
-      setBoardData(response);
+      
+      // Ensure the response has the expected structure
+      const safeResponse: HousekeepingBoard = {
+        date: response?.date || format(currentDate, 'yyyy-MM-dd'),
+        board: {
+          pending: Array.isArray(response?.board?.pending) ? response.board.pending : [],
+          in_progress: Array.isArray(response?.board?.in_progress) ? response.board.in_progress : [],
+          completed: Array.isArray(response?.board?.completed) ? response.board.completed : [],
+          skipped: Array.isArray(response?.board?.skipped) ? response.board.skipped : [],
+        },
+        summary: {
+          total: response?.summary?.total || 0,
+          pending: response?.summary?.pending || 0,
+          in_progress: response?.summary?.in_progress || 0,
+          completed: response?.summary?.completed || 0,
+          skipped: response?.summary?.skipped || 0,
+        }
+      };
+      
+      setBoardData(safeResponse);
     } catch (error) {
       console.error('Failed to fetch housekeeping board:', error);
+      // Set empty board data on error
+      setBoardData({
+        date: format(currentDate, 'yyyy-MM-dd'),
+        board: {
+          pending: [],
+          in_progress: [],
+          completed: [],
+          skipped: [],
+        },
+        summary: {
+          total: 0,
+          pending: 0,
+          in_progress: 0,
+          completed: 0,
+          skipped: 0,
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -140,24 +176,28 @@ export default function HousekeepingPage() {
     </div>
   );
 
-  const renderColumn = (title: string, tasks: HousekeepingTask[], icon: string, color: string) => (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-2xl">{icon}</span>
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        <span className={`ml-auto px-2 py-1 rounded-full text-xs font-medium ${color}`}>
-          {tasks.length}
-        </span>
+  const renderColumn = (title: string, tasks: HousekeepingTask[] | null | undefined, icon: string, color: string) => {
+    const taskArray = Array.isArray(tasks) ? tasks : [];
+    
+    return (
+      <div className="bg-gray-50 rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-2xl">{icon}</span>
+          <h3 className="font-semibold text-gray-900">{title}</h3>
+          <span className={`ml-auto px-2 py-1 rounded-full text-xs font-medium ${color}`}>
+            {taskArray.length}
+          </span>
+        </div>
+        <div className="space-y-3">
+          {taskArray.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">No tasks</div>
+          ) : (
+            taskArray.map(renderTaskCard)
+          )}
+        </div>
       </div>
-      <div className="space-y-3">
-        {tasks.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 text-sm">No tasks</div>
-        ) : (
-          tasks.map(renderTaskCard)
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -257,10 +297,10 @@ export default function HousekeepingPage() {
       {/* Kanban Board */}
       {boardData && (
         <div className="grid grid-cols-4 gap-4">
-          {renderColumn('Pending', boardData.board.pending, '⏳', 'bg-yellow-100 text-yellow-800')}
-          {renderColumn('In Progress', boardData.board.in_progress, '🔄', 'bg-blue-100 text-blue-800')}
-          {renderColumn('Completed', boardData.board.completed, '✅', 'bg-green-100 text-green-800')}
-          {renderColumn('Skipped', boardData.board.skipped, '⏭️', 'bg-gray-100 text-gray-800')}
+          {renderColumn('Pending', boardData.board?.pending || [], '⏳', 'bg-yellow-100 text-yellow-800')}
+          {renderColumn('In Progress', boardData.board?.in_progress || [], '🔄', 'bg-blue-100 text-blue-800')}
+          {renderColumn('Completed', boardData.board?.completed || [], '✅', 'bg-green-100 text-green-800')}
+          {renderColumn('Skipped', boardData.board?.skipped || [], '⏭️', 'bg-gray-100 text-gray-800')}
         </div>
       )}
     </div>
