@@ -207,8 +207,8 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
         taxes: pricing.taxes,
         fees: pricing.fees,
         paid_amount: pricing.paidAmount,
-        special_requests: specialRequests || null,
-        internal_notes: internalNotes || null,
+        special_requests: specialRequests || undefined,
+        internal_notes: internalNotes || undefined,
         source,
       };
 
@@ -676,7 +676,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                 <h4 style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Pricing
                 </h4>
-                <div style={{ fontSize: '18px', fontWeight: '700', color: '#6366f1', fontSize: '24px' }}>
+                <div style={{ fontWeight: '700', color: '#6366f1', fontSize: '24px' }}>
                   ${pricing.totalAmount.toFixed(2)}
                 </div>
               </div>
@@ -864,7 +864,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
         <GuestModal
           onClose={() => setShowNewGuestModal(false)}
           onSuccess={(guest) => {
-            setSelectedGuest(guest);
+            if (guest) setSelectedGuest(guest);
             setShowNewGuestModal(false);
           }}
         />

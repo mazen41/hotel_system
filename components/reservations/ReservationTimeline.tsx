@@ -43,7 +43,7 @@ export default function ReservationTimeline({ startDate: initialStartDate, days 
       const timelineReservations: TimelineReservation[] = reservationsResponse.data.map(res => ({
         ...res,
         roomNumber: res.room?.room_number || 'TBD',
-        roomFloor: res.room?.floor || 0
+        roomFloor: Number(res.room?.floor) || 0
       }));
 
       setReservations(timelineReservations);

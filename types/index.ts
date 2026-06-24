@@ -225,6 +225,7 @@ export interface Guest {
   total_stays: number;
   total_spent: number;
   reservations_count?: number;
+  reservations?: GuestReservation[];
   // Timestamps
   created_at: string | null;
   updated_at: string | null;
@@ -380,6 +381,7 @@ export interface Reservation {
   room?: {
     id: number;
     room_number: string;
+    floor?: string;
     room_type?: {
       id: number;
       name: string;
@@ -481,12 +483,12 @@ export interface RatePlanFormData {
   type: RatePlanType;
   pricing_type: PricingType;
   base_rate: number;
-  min_nights?: number;
-  max_nights?: number;
+  min_nights?: number | null;
+  max_nights?: number | null;
   occupancy_based_pricing?: boolean;
   allow_children?: boolean;
   allow_extra_beds?: boolean;
-  extra_bed_price?: number;
+  extra_bed_price?: number | null;
   meal_plan_included?: boolean;
   meal_plan_type?: string;
   cancellation_policy?: string;

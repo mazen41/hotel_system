@@ -32,7 +32,7 @@ type GuestFormValues = z.infer<typeof guestSchema>;
 interface GuestModalProps {
   guest?: Guest | null;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (guest?: Guest) => void;
 }
 
 export default function GuestModal({ guest, onClose, onSuccess }: GuestModalProps) {
@@ -117,8 +117,10 @@ export default function GuestModal({ guest, onClose, onSuccess }: GuestModalProp
         marketing_consent: data.marketing_consent,
       };
 
+      let savedGuest: Guest | undefined;
       if (guest) {
-        await guestsApi.update(guest.id, payload);
+        const response = await guestsApi.update(guest.id, payload);
+        savedGuest = response.data;
       } else {
         const response = await guestsApi.create(payload);
         if (response.duplicate && !forceSave) {
@@ -126,8 +128,9 @@ export default function GuestModal({ guest, onClose, onSuccess }: GuestModalProp
           setSubmitting(false);
           return;
         }
+        savedGuest = response.data;
       }
-      onSuccess();
+      onSuccess(savedGuest);
     } catch (error) {
       if (error instanceof ApiError) {
         console.error('Error:', error.message);
