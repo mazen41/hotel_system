@@ -24,7 +24,7 @@ function getStatusCfg(status: string) {
   return STATUS_CONFIG[status] || { label: status, color: 'rgba(99,99,99,0.15)', glow: '#666', dot: '#666' };
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://hotleios.xo.je/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://hotleios.xo.je/api';
 
 async function fetchAvailabilityCalendar(params: {
   start_date: string;

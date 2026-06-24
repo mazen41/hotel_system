@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: '#ef4444', no_show: '#a855f7', pending: '#f59e0b',
   clean: '#10b981', dirty: '#ef4444', in_progress: '#f59e0b', inspecting: '#8b5cf6',
 };
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://hotleios.xo.je/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://hotleios.xo.je/api';
 
 function toArray(val: any): any[] {
   if (Array.isArray(val)) return val;
