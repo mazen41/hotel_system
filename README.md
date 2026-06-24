@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hotel Management SaaS — Frontend
 
-## Getting Started
+Next.js 15 + TypeScript + Tailwind CSS admin dashboard.
 
-First, run the development server:
+## Requirements
+- Node.js 18+
+- npm or yarn
+
+## Setup
 
 ```bash
+cd frontend
+
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp .env.example .env.local
+# Edit .env.local if your backend runs on a different port
+
+# 3. Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Frontend runs at: **http://localhost:3000**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Description | Auth Required |
+|-------|-------------|--------------|
+| `/login` | Login page | No |
+| `/register` | Register page | No |
+| `/dashboard` | Admin dashboard | Yes (redirects to /login) |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+├── layout.tsx              # Root layout with AuthProvider
+├── page.tsx                # Redirects to /login
+├── login/
+│   └── page.tsx            # Login page
+├── register/
+│   └── page.tsx            # Register page
+└── dashboard/
+    ├── layout.tsx          # Protected layout (sidebar + topbar)
+    └── page.tsx            # Dashboard overview
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+components/
+├── layout/
+│   ├── Sidebar.tsx         # Collapsible sidebar with nav + logout
+│   └── Topbar.tsx          # Top navigation bar
+└── dashboard/
+    ├── KPICard.tsx         # KPI metric card
+    ├── ActivityFeed.tsx    # Recent activity timeline
+    └── OccupancyChart.tsx  # Bar chart for occupancy trend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+contexts/
+└── AuthContext.tsx         # Global auth state + token management
 
-## Deploy on Vercel
+lib/
+└── api.ts                  # HTTP client for Laravel API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+types/
+└── index.ts                # TypeScript interfaces
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_API_URL` | Laravel backend API URL | `http://localhost:8000/api` |
+
+## Authentication Flow
+
+1. User submits login form → POST `/api/auth/login`
+2. Backend returns Sanctum token
+3. Token stored in `localStorage` as `auth_token`
+4. All API calls include `Authorization: Bearer {token}`
+5. On app load, token is verified via GET `/api/auth/me`
+6. Protected routes redirect to `/login` if not authenticated
+7. Logout revokes token via POST `/api/auth/logout` + clears localStorage
