@@ -54,7 +54,7 @@ function LoginScreen({ onLogin }) {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://hotleios.xo.je/api'}/auth/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://hotel-sys.loop-pr.com/api'}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password }),
