@@ -16,7 +16,8 @@ npm install
 
 # 2. Configure environment
 cp .env.example .env.local
-# Edit .env.local if your backend runs on a different port
+# For production deployment, ensure NEXT_PUBLIC_API_URL is set to:
+# https://hotleios.xo.je/api
 
 # 3. Start development server
 npm run dev
