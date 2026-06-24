@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://hotleios.xo.je/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://hotleios.xo.je/api',
   headers: { Accept: 'application/json' },
 });
 

@@ -69,7 +69,7 @@ types/
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_API_URL` | Laravel backend API URL | `http://hotleios.xo.je/api` |
+| `NEXT_PUBLIC_API_URL` | Laravel backend API URL | `https://hotleios.xo.je/api` |
 
 ## Authentication Flow
 

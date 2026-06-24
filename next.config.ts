@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   //   return [
   //     {
   //       source: '/api/:path*',
-  //       destination: 'http://hotleios.xo.je/api/:path*',
+  //       destination: 'https://hotleios.xo.je/api/:path*',
   //     },
   //   ];
   // },
