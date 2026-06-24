@@ -3,6 +3,6 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://hotleios.xo.je/api"
+    "NEXT_PUBLIC_API_URL": "https://hotel-sys.loop-pr.com/api"
   }
 }
