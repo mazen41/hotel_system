@@ -91,7 +91,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
     setFormData(prev => ({
       ...prev,
       room_type_rates: prev.room_type_rates?.map(rtr =>
-        rtr.room_type_id === roomTypeId ? { room_type_id, rate } : rtr
+        rtr.room_type_id === roomTypeId ? { room_type_id: roomTypeId, rate } : rtr
       ) || [],
     }));
   }

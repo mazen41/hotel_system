@@ -87,6 +87,61 @@ async function multipartRequest<T>(
   return data as T;
 }
 
+/**
+ * Generic axios-style client.
+ * Provides `.get/.post/.put/.patch/.delete` returning `{ data }` so that
+ * callers can read `response.data`, mirroring the axios interface.
+ */
+function buildQuery(params?: Record<string, unknown>): string {
+  if (!params) return '';
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      search.append(key, String(value));
+    }
+  }
+  const query = search.toString();
+  return query ? `?${query}` : '';
+}
+
+interface RequestConfig {
+  params?: Record<string, unknown>;
+}
+
+export const api = {
+  get: async <T = any>(endpoint: string, config?: RequestConfig) => {
+    const data = await request<T>(`${endpoint}${buildQuery(config?.params)}`);
+    return { data };
+  },
+  post: async <T = any>(endpoint: string, body?: unknown, config?: RequestConfig) => {
+    const data = await request<T>(`${endpoint}${buildQuery(config?.params)}`, {
+      method: 'POST',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    return { data };
+  },
+  put: async <T = any>(endpoint: string, body?: unknown, config?: RequestConfig) => {
+    const data = await request<T>(`${endpoint}${buildQuery(config?.params)}`, {
+      method: 'PUT',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    return { data };
+  },
+  patch: async <T = any>(endpoint: string, body?: unknown, config?: RequestConfig) => {
+    const data = await request<T>(`${endpoint}${buildQuery(config?.params)}`, {
+      method: 'PATCH',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    return { data };
+  },
+  delete: async <T = any>(endpoint: string, config?: RequestConfig) => {
+    const data = await request<T>(`${endpoint}${buildQuery(config?.params)}`, {
+      method: 'DELETE',
+    });
+    return { data };
+  },
+};
+
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 
 export const authApi = {
@@ -360,6 +415,7 @@ export const reservationsApi = {
     guest_id?: number;
     room_id?: number;
     room_type_id?: number;
+    source?: string;
     group_id?: number;
     date_from?: string;
     date_to?: string;
@@ -375,6 +431,7 @@ export const reservationsApi = {
     if (params?.guest_id) queryString.append('guest_id', String(params.guest_id));
     if (params?.room_id) queryString.append('room_id', String(params.room_id));
     if (params?.room_type_id) queryString.append('room_type_id', String(params.room_type_id));
+    if (params?.source) queryString.append('source', params.source);
     if (params?.group_id) queryString.append('group_id', String(params.group_id));
     if (params?.date_from) queryString.append('date_from', params.date_from);
     if (params?.date_to) queryString.append('date_to', params.date_to);

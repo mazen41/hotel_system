@@ -451,7 +451,7 @@ export default function GuestsPage() {
             </thead>
             <tbody>
               {filteredGuests.map((guest) => (
-                <tr key={guest.id} style={{ borderBottom: '1px solid var(--color-border)', '&:hover': { background: 'var(--color-background)' } }}>
+                <tr key={guest.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                   <td style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{
