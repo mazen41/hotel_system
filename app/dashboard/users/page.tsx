@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/lib/api';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://hotleios.xo.je/api';
 function getToken() { return typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null; }
 async function api(method: string, path: string, body?: any) {
   const res = await fetch(`${API}${path}`, {

@@ -5,7 +5,7 @@
  * Automatically attaches Sanctum bearer tokens from localStorage.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://hotleios.xo.je/api';
 
 export class ApiError extends Error {
   status: number;
