@@ -1,8 +1,5 @@
 {
-  "/dashboard/room-types/page": "app/dashboard/room-types/page.js",
-  "/dashboard/rate-plans/page": "app/dashboard/rate-plans/page.js",
-  "/dashboard/rate-plans/[id]/page": "app/dashboard/rate-plans/[id]/page.js",
-  "/dashboard/reservations/page": "app/dashboard/reservations/page.js",
-  "/dashboard/reservations/calendar/page": "app/dashboard/reservations/calendar/page.js",
-  "/dashboard/rooms/page": "app/dashboard/rooms/page.js"
+  "/dashboard/reservations/[id]/page": "app/dashboard/reservations/[id]/page.js",
+  "/dashboard/billing/folios/page": "app/dashboard/billing/folios/page.js",
+  "/dashboard/reservations/page": "app/dashboard/reservations/page.js"
 }

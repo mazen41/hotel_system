@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { reservationsApi, guestsApi, ApiError } from '@/lib/api';
-import type { Reservation } from '@/types';
+import { reservationsApi, guestsApi, billingApi, ApiError } from '@/lib/api';
+import type { Reservation, Folio, Charge, Payment } from '@/types';
 
 export default function ReservationDetailPage() {
   const router = useRouter();
@@ -17,10 +17,47 @@ export default function ReservationDetailPage() {
   const [editingInternalNotes, setEditingInternalNotes] = useState(false);
   const [internalNotesValue, setInternalNotesValue] = useState('');
   const [updatingNotes, setUpdatingNotes] = useState(false);
+  
+  // Billing state
+  const [folios, setFolios] = useState<Folio[]>([]);
+  const [charges, setCharges] = useState<Charge[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [billingLoading, setBillingLoading] = useState(false);
+  
+  // Charge modal
+  const [showChargeModal, setShowChargeModal] = useState(false);
+  const [creatingCharge, setCreatingCharge] = useState(false);
+  const [chargeFormData, setChargeFormData] = useState({
+    folio_id: '',
+    charge_type: 'room' as const,
+    description: '',
+    amount: '',
+    tax_amount: '',
+    notes: ''
+  });
+  
+  // Payment modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [creatingPayment, setCreatingPayment] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState({
+    folio_id: '',
+    payment_method: 'cash' as const,
+    card_last_four: '',
+    card_type: '',
+    transaction_id: '',
+    amount: '',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchReservation();
   }, [reservationId]);
+
+  useEffect(() => {
+    if (reservation && activeTab === 'payments') {
+      fetchBillingData();
+    }
+  }, [reservation, activeTab]);
 
   async function fetchReservation() {
     setLoading(true);
@@ -109,6 +146,137 @@ export default function ReservationDetailPage() {
   function handleCancelEditInternalNotes() {
     setEditingInternalNotes(false);
     setInternalNotesValue('');
+  }
+
+  async function fetchBillingData() {
+    if (!reservation) return;
+    setBillingLoading(true);
+    try {
+      // Fetch folios for this reservation
+      const foliosResponse = await billingApi.folios.list({
+        reservation_id: reservation.id,
+        per_page: 50
+      });
+      setFolios(foliosResponse.data);
+
+      // Fetch charges for this reservation
+      const chargesResponse = await billingApi.charges.list({
+        reservation_id: reservation.id,
+        per_page: 50
+      });
+      setCharges(chargesResponse.data);
+
+      // Fetch payments for this reservation
+      const paymentsResponse = await billingApi.payments.list({
+        reservation_id: reservation.id,
+        per_page: 50
+      });
+      setPayments(paymentsResponse.data);
+    } catch (error) {
+      console.error('Error fetching billing data:', error);
+    } finally {
+      setBillingLoading(false);
+    }
+  }
+
+  async function handleCreateCharge() {
+    if (!chargeFormData.folio_id || !chargeFormData.description || !chargeFormData.amount) {
+      setSuccessMessage('Please fill in all required fields');
+      setTimeout(() => setSuccessMessage(null), 3000);
+      return;
+    }
+
+    setCreatingCharge(true);
+    try {
+      await billingApi.charges.create({
+        folio_id: parseInt(chargeFormData.folio_id),
+        reservation_id: reservation?.id,
+        charge_type: chargeFormData.charge_type,
+        description: chargeFormData.description,
+        amount: parseFloat(chargeFormData.amount),
+        tax_amount: chargeFormData.tax_amount ? parseFloat(chargeFormData.tax_amount) : undefined,
+        notes: chargeFormData.notes || undefined,
+      });
+      setSuccessMessage('Charge added successfully!');
+      await fetchBillingData();
+      setShowChargeModal(false);
+      setChargeFormData({
+        folio_id: '',
+        charge_type: 'room',
+        description: '',
+        amount: '',
+        tax_amount: '',
+        notes: ''
+      });
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSuccessMessage(error.message || 'Failed to add charge');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    } finally {
+      setCreatingCharge(false);
+    }
+  }
+
+  async function handleCreatePayment() {
+    if (!paymentFormData.folio_id || !paymentFormData.amount) {
+      setSuccessMessage('Please fill in all required fields');
+      setTimeout(() => setSuccessMessage(null), 3000);
+      return;
+    }
+
+    setCreatingPayment(true);
+    try {
+      await billingApi.payments.create({
+        folio_id: parseInt(paymentFormData.folio_id),
+        reservation_id: reservation?.id,
+        payment_method: paymentFormData.payment_method,
+        card_last_four: paymentFormData.card_last_four || undefined,
+        card_type: paymentFormData.card_type || undefined,
+        transaction_id: paymentFormData.transaction_id || undefined,
+        amount: parseFloat(paymentFormData.amount),
+        notes: paymentFormData.notes || undefined,
+      });
+      setSuccessMessage('Payment recorded successfully!');
+      await fetchBillingData();
+      setShowPaymentModal(false);
+      setPaymentFormData({
+        folio_id: '',
+        payment_method: 'cash',
+        card_last_four: '',
+        card_type: '',
+        transaction_id: '',
+        amount: '',
+        notes: ''
+      });
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSuccessMessage(error.message || 'Failed to record payment');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    } finally {
+      setCreatingPayment(false);
+    }
+  }
+
+  async function handleCreateFolio() {
+    if (!reservation) return;
+    try {
+      await billingApi.folios.create({
+        reservation_id: reservation.id,
+        guest_id: reservation.guest_id,
+      });
+      setSuccessMessage('Folio created successfully!');
+      await fetchBillingData();
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSuccessMessage(error.message || 'Failed to create folio');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    }
   }
 
   function getStatusColor(status: string): { bg: string; text: string } {
@@ -664,42 +832,679 @@ export default function ReservationDetailPage() {
       )}
 
       {activeTab === 'payments' && (
-        <div style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '12px',
-          padding: '40px',
-          textAlign: 'center',
-        }}>
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-text-muted)', marginBottom: '16px' }}>
-            <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-primary)' }}>
-            Payment Management
-          </h3>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '20px' }}>
-            Payment tracking and history will be implemented in a future update.
-          </p>
+        <div>
+          {/* Payment Summary */}
           <div style={{
-            padding: '16px',
-            background: 'var(--color-background)',
-            borderRadius: '8px',
-            display: 'inline-block',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px',
+            marginBottom: '24px',
           }}>
-            <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-              Total Amount
+            <div style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '12px',
+              padding: '20px',
+            }}>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                Total Amount
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#6366f1' }}>
+                ${parseFloat(reservation.total_amount as any || 0).toFixed(2)}
+              </div>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#6366f1' }}>
-              ${parseFloat(reservation.total_amount as any || 0).toFixed(2)}
+            <div style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '12px',
+              padding: '20px',
+            }}>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                Paid Amount
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#22c55e' }}>
+                ${parseFloat(reservation.paid_amount as any || 0).toFixed(2)}
+              </div>
             </div>
-            <div style={{ fontSize: '14px', color: '#22c55e', fontWeight: '500', marginTop: '8px' }}>
-              Paid: ${parseFloat(reservation.paid_amount as any || 0).toFixed(2)}
+            <div style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '12px',
+              padding: '20px',
+            }}>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                Balance Due
+              </div>
+              <div style={{ 
+                fontSize: '28px', 
+                fontWeight: '700', 
+                color: parseFloat(reservation.balance_due as any || 0) > 0 ? '#ef4444' : '#22c55e' 
+              }}>
+                ${parseFloat(reservation.balance_due as any || 0).toFixed(2)}
+              </div>
             </div>
-            <div style={{ fontSize: '14px', color: parseFloat(reservation.balance_due as any || 0) > 0 ? '#ef4444' : '#22c55e', fontWeight: '500' }}>
-              Due: ${parseFloat(reservation.balance_due as any || 0).toFixed(2)}
+            <div style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '12px',
+              padding: '20px',
+            }}>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                Payment Status
+              </div>
+              <div style={{ 
+                fontSize: '16px', 
+                fontWeight: '600', 
+                color: getPaymentStatusColor(reservation.payment_status).text,
+                background: getPaymentStatusColor(reservation.payment_status).bg,
+                padding: '6px 12px',
+                borderRadius: '6px',
+                display: 'inline-block'
+              }}>
+                {reservation.payment_status.replace('_', ' ').toUpperCase()}
+              </div>
             </div>
           </div>
+
+          {/* Folios Section */}
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: '16px' 
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                Folios
+              </h2>
+              <button
+                onClick={handleCreateFolio}
+                disabled={billingLoading}
+                style={{
+                  padding: '8px 16px',
+                  background: '#6366f1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: billingLoading ? 'not-allowed' : 'pointer',
+                  opacity: billingLoading ? 0.6 : 1,
+                }}
+              >
+                Create Folio
+              </button>
+            </div>
+
+            {billingLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>
+                Loading billing data...
+              </div>
+            ) : folios.length === 0 ? (
+              <div style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+                padding: '40px',
+                textAlign: 'center',
+              }}>
+                <p style={{ color: 'var(--color-text-secondary)' }}>
+                  No folios found for this reservation. Create a folio to start tracking charges and payments.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {folios.map((folio) => (
+                  <div key={folio.id} style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                  }}>
+                    {/* Folio Header */}
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      marginBottom: '16px',
+                      paddingBottom: '16px',
+                      borderBottom: '1px solid var(--color-border)'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                          {folio.folio_number}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                          {folio.guest?.full_name || 'Unknown Guest'}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          background: folio.status === 'open' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                          color: folio.status === 'open' ? '#22c55e' : '#6b7280',
+                          fontWeight: '500',
+                          marginBottom: '4px'
+                        }}>
+                          {folio.status.toUpperCase()}
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                          Balance: ${folio.balance_due.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                      <button
+                        onClick={() => {
+                          setChargeFormData({ ...chargeFormData, folio_id: folio.id.toString() });
+                          setShowChargeModal(true);
+                        }}
+                        style={{
+                          padding: '8px 16px',
+                          background: '#6366f1',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Add Charge
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPaymentFormData({ ...paymentFormData, folio_id: folio.id.toString() });
+                          setShowPaymentModal(true);
+                        }}
+                        style={{
+                          padding: '8px 16px',
+                          background: '#22c55e',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Record Payment
+                      </button>
+                    </div>
+
+                    {/* Charges */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                        Charges
+                      </div>
+                      {charges.filter(c => c.folio_id === folio.id).length === 0 ? (
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', padding: '12px', background: 'var(--color-background)', borderRadius: '8px' }}>
+                          No charges
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {charges.filter(c => c.folio_id === folio.id).map((charge) => (
+                            <div key={charge.id} style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '12px',
+                              background: 'var(--color-background)',
+                              borderRadius: '8px',
+                            }}>
+                              <div>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                                  {charge.description}
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                                  {charge.charge_type} • {charge.charged_at ? new Date(charge.charged_at).toLocaleDateString() : 'N/A'}
+                                </div>
+                              </div>
+                              <div style={{ fontSize: '14px', fontWeight: '600', color: '#ef4444' }}>
+                                -${charge.total_amount.toFixed(2)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Payments */}
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                        Payments
+                      </div>
+                      {payments.filter(p => p.folio_id === folio.id).length === 0 ? (
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', padding: '12px', background: 'var(--color-background)', borderRadius: '8px' }}>
+                          No payments
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {payments.filter(p => p.folio_id === folio.id).map((payment) => (
+                            <div key={payment.id} style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '12px',
+                              background: 'var(--color-background)',
+                              borderRadius: '8px',
+                            }}>
+                              <div>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                                  {payment.payment_method.replace('_', ' ').toUpperCase()}
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                                  {payment.payment_number} • {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : 'N/A'}
+                                </div>
+                              </div>
+                              <div style={{ fontSize: '14px', fontWeight: '600', color: '#22c55e' }}>
+                                +${payment.amount.toFixed(2)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Charge Modal */}
+          {showChargeModal && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}>
+              <div style={{
+                background: 'var(--color-surface)',
+                borderRadius: '12px',
+                padding: '24px',
+                width: '100%',
+                maxWidth: '500px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
+                  Add Charge
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Charge Type *
+                    </label>
+                    <select
+                      value={chargeFormData.charge_type}
+                      onChange={(e) => setChargeFormData({ ...chargeFormData, charge_type: e.target.value as any })}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      <option value="room">Room</option>
+                      <option value="food_beverage">Food & Beverage</option>
+                      <option value="service">Service</option>
+                      <option value="amenity">Amenity</option>
+                      <option value="phone">Phone</option>
+                      <option value="laundry">Laundry</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Description *
+                    </label>
+                    <input
+                      type="text"
+                      value={chargeFormData.description}
+                      onChange={(e) => setChargeFormData({ ...chargeFormData, description: e.target.value })}
+                      placeholder="Enter charge description"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Amount *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={chargeFormData.amount}
+                      onChange={(e) => setChargeFormData({ ...chargeFormData, amount: e.target.value })}
+                      placeholder="0.00"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Tax Amount
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={chargeFormData.tax_amount}
+                      onChange={(e) => setChargeFormData({ ...chargeFormData, tax_amount: e.target.value })}
+                      placeholder="0.00"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Notes
+                    </label>
+                    <textarea
+                      value={chargeFormData.notes}
+                      onChange={(e) => setChargeFormData({ ...chargeFormData, notes: e.target.value })}
+                      placeholder="Optional notes"
+                      rows={3}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                        resize: 'vertical',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <button
+                      onClick={() => setShowChargeModal(false)}
+                      disabled={creatingCharge}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: creatingCharge ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateCharge}
+                      disabled={creatingCharge}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: '#6366f1',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: creatingCharge ? 'not-allowed' : 'pointer',
+                        opacity: creatingCharge ? 0.6 : 1,
+                      }}
+                    >
+                      {creatingCharge ? 'Adding...' : 'Add Charge'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Modal */}
+          {showPaymentModal && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}>
+              <div style={{
+                background: 'var(--color-surface)',
+                borderRadius: '12px',
+                padding: '24px',
+                width: '100%',
+                maxWidth: '500px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
+                  Record Payment
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Payment Method *
+                    </label>
+                    <select
+                      value={paymentFormData.payment_method}
+                      onChange={(e) => setPaymentFormData({ ...paymentFormData, payment_method: e.target.value as any })}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="credit_card">Credit Card</option>
+                      <option value="debit_card">Debit Card</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="check">Check</option>
+                      <option value="online_payment">Online Payment</option>
+                    </select>
+                  </div>
+
+                  {paymentFormData.payment_method.includes('card') && (
+                    <>
+                      <div>
+                        <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                          Card Type
+                        </label>
+                        <input
+                          type="text"
+                          value={paymentFormData.card_type}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, card_type: e.target.value })}
+                          placeholder="Visa, Mastercard, etc."
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            background: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                          Last Four Digits
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={4}
+                          value={paymentFormData.card_last_four}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, card_last_four: e.target.value })}
+                          placeholder="1234"
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            background: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Amount *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={paymentFormData.amount}
+                      onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
+                      placeholder="0.00"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Transaction ID
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentFormData.transaction_id}
+                      onChange={(e) => setPaymentFormData({ ...paymentFormData, transaction_id: e.target.value })}
+                      placeholder="Optional transaction ID"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                      Notes
+                    </label>
+                    <textarea
+                      value={paymentFormData.notes}
+                      onChange={(e) => setPaymentFormData({ ...paymentFormData, notes: e.target.value })}
+                      placeholder="Optional notes"
+                      rows={3}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                        resize: 'vertical',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <button
+                      onClick={() => setShowPaymentModal(false)}
+                      disabled={creatingPayment}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: creatingPayment ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreatePayment}
+                      disabled={creatingPayment}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: '#22c55e',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: creatingPayment ? 'not-allowed' : 'pointer',
+                        opacity: creatingPayment ? 0.6 : 1,
+                      }}
+                    >
+                      {creatingPayment ? 'Recording...' : 'Record Payment'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

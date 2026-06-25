@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { billingApi, ApiError } from '@/lib/api';
-import type { Charge } from '@/types';
+import type { Charge, ChargeFormData } from '@/types';
 
 export default function ChargesPage() {
   const [charges, setCharges] = useState<Charge[]>([]);
@@ -23,6 +23,19 @@ export default function ChargesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<Charge | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [actionMenu, setActionMenu] = useState<number | null>(null);
+  
+  // Create Modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    folio_id: '',
+    reservation_id: '',
+    charge_type: 'room' as const,
+    description: '',
+    amount: '',
+    tax_amount: '',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchCharges();
@@ -86,6 +99,47 @@ export default function ChargesPage() {
     }
   }
 
+  async function handleCreateCharge() {
+    if (!formData.folio_id || !formData.description || !formData.amount) {
+      setSuccessMessage('Please fill in all required fields');
+      setTimeout(() => setSuccessMessage(null), 3000);
+      return;
+    }
+
+    setCreating(true);
+    try {
+      await billingApi.charges.create({
+        folio_id: parseInt(formData.folio_id),
+        reservation_id: formData.reservation_id ? parseInt(formData.reservation_id) : undefined,
+        charge_type: formData.charge_type,
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        tax_amount: formData.tax_amount ? parseFloat(formData.tax_amount) : undefined,
+        notes: formData.notes || undefined,
+      });
+      setSuccessMessage('Charge created successfully!');
+      await fetchCharges();
+      setShowCreateModal(false);
+      setFormData({
+        folio_id: '',
+        reservation_id: '',
+        charge_type: 'room',
+        description: '',
+        amount: '',
+        tax_amount: '',
+        notes: ''
+      });
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSuccessMessage(error.message || 'Failed to create charge');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    } finally {
+      setCreating(false);
+    }
+  }
+
   const sortIcon = (field: string) => {
     if (sortBy !== field) return null;
     return sortDirection === 'asc' ? '↑' : '↓';
@@ -134,6 +188,28 @@ export default function ChargesPage() {
               Manage guest charges and fees
             </p>
           </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              padding: '10px 20px',
+              background: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Add Charge
+          </button>
         </div>
       </div>
 
@@ -482,6 +558,218 @@ export default function ChargesPage() {
                 }}
               >
                 {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Charge Modal */}
+      {showCreateModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: 'var(--color-surface)',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid var(--color-border)',
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '12px' }}>
+              Add New Charge
+            </h3>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Folio ID *
+              </label>
+              <input
+                type="number"
+                value={formData.folio_id}
+                onChange={(e) => setFormData({ ...formData, folio_id: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Reservation ID
+              </label>
+              <input
+                type="number"
+                value={formData.reservation_id}
+                onChange={(e) => setFormData({ ...formData, reservation_id: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Charge Type *
+              </label>
+              <select
+                value={formData.charge_type}
+                onChange={(e) => setFormData({ ...formData, charge_type: e.target.value as any })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              >
+                <option value="room">Room</option>
+                <option value="food_beverage">Food & Beverage</option>
+                <option value="service">Service</option>
+                <option value="amenity">Amenity</option>
+                <option value="phone">Phone</option>
+                <option value="laundry">Laundry</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Description *
+              </label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Amount *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Tax Amount
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.tax_amount}
+                onChange={(e) => setFormData({ ...formData, tax_amount: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Notes
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setFormData({
+                    folio_id: '',
+                    reservation_id: '',
+                    charge_type: 'room',
+                    description: '',
+                    amount: '',
+                    tax_amount: '',
+                    notes: ''
+                  });
+                }}
+                disabled={creating}
+                style={{
+                  padding: '10px 20px',
+                  background: 'transparent',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                  cursor: creating ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCharge}
+                disabled={creating}
+                style={{
+                  padding: '10px 20px',
+                  background: '#6366f1',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: creating ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {creating ? 'Creating...' : 'Add Charge'}
               </button>
             </div>
           </div>

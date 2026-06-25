@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { billingApi, ApiError } from '@/lib/api';
-import type { Folio } from '@/types';
+import type { Folio, FolioFormData } from '@/types';
 
 export default function FoliosPage() {
   const [folios, setFolios] = useState<Folio[]>([]);
@@ -22,6 +22,15 @@ export default function FoliosPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<Folio | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [actionMenu, setActionMenu] = useState<number | null>(null);
+  
+  // Create Modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    reservation_id: '',
+    guest_id: '',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchFolios();
@@ -115,6 +124,35 @@ export default function FoliosPage() {
     }
   }
 
+  async function handleCreateFolio() {
+    if (!formData.reservation_id || !formData.guest_id) {
+      setSuccessMessage('Please fill in all required fields');
+      setTimeout(() => setSuccessMessage(null), 3000);
+      return;
+    }
+
+    setCreating(true);
+    try {
+      await billingApi.folios.create({
+        reservation_id: parseInt(formData.reservation_id),
+        guest_id: parseInt(formData.guest_id),
+        notes: formData.notes || undefined,
+      });
+      setSuccessMessage('Folio created successfully!');
+      await fetchFolios();
+      setShowCreateModal(false);
+      setFormData({ reservation_id: '', guest_id: '', notes: '' });
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSuccessMessage(error.message || 'Failed to create folio');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    } finally {
+      setCreating(false);
+    }
+  }
+
   const sortIcon = (field: string) => {
     if (sortBy !== field) return null;
     return sortDirection === 'asc' ? '↑' : '↓';
@@ -148,6 +186,28 @@ export default function FoliosPage() {
               Manage guest folios and billing accounts
             </p>
           </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              padding: '10px 20px',
+              background: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Create Folio
+          </button>
         </div>
       </div>
 
@@ -524,6 +584,125 @@ export default function FoliosPage() {
                 }}
               >
                 {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Folio Modal */}
+      {showCreateModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: 'var(--color-surface)',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid var(--color-border)',
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '12px' }}>
+              Create New Folio
+            </h3>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Reservation ID *
+              </label>
+              <input
+                type="number"
+                value={formData.reservation_id}
+                onChange={(e) => setFormData({ ...formData, reservation_id: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Guest ID *
+              </label>
+              <input
+                type="number"
+                value={formData.guest_id}
+                onChange={(e) => setFormData({ ...formData, guest_id: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                Notes
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'var(--color-input-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setFormData({ reservation_id: '', guest_id: '', notes: '' });
+                }}
+                disabled={creating}
+                style={{
+                  padding: '10px 20px',
+                  background: 'transparent',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '14px',
+                  cursor: creating ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateFolio}
+                disabled={creating}
+                style={{
+                  padding: '10px 20px',
+                  background: '#6366f1',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: creating ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {creating ? 'Creating...' : 'Create Folio'}
               </button>
             </div>
           </div>
