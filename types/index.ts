@@ -430,6 +430,7 @@ export interface ReservationFormData {
   children?: number;
   status?: ReservationStatus;
   payment_status?: ReservationPaymentStatus;
+  total_amount?: number;
   taxes?: number;
   fees?: number;
   paid_amount?: number;

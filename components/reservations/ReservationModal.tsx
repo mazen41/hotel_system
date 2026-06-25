@@ -28,6 +28,8 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
+  const [availableRoomTypes, setAvailableRoomTypes] = useState<RoomType[]>([]);
+  const [loadingRoomTypes, setLoadingRoomTypes] = useState(false);
   
   // Step 3: Room Selection
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
@@ -60,6 +62,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
     if (preSelectedRoomId) {
       loadRoom(preSelectedRoomId);
     }
+    loadRoomTypes();
   }, [preSelectedGuestId, preSelectedRoomId]);
 
   useEffect(() => {
@@ -126,12 +129,14 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
   }
 
   async function loadRoomTypes() {
+    setLoadingRoomTypes(true);
     try {
       const response = await roomTypesApi.list({ active: true });
-      setSearchResults([]);
-      // Room types loaded - could be used for type selection
+      setAvailableRoomTypes(response.data);
     } catch (error) {
       console.error('Error loading room types:', error);
+    } finally {
+      setLoadingRoomTypes(false);
     }
   }
 
@@ -226,7 +231,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
   const canProceed = () => {
     switch (currentStep) {
       case 1: return selectedGuest !== null;
-      case 2: return checkInDate && checkOutDate && new Date(checkOutDate) > new Date(checkInDate);
+      case 2: return checkInDate && checkOutDate && new Date(checkOutDate) > new Date(checkInDate) && selectedRoomType !== null;
       case 3: return selectedRoom !== null;
       case 4: return true;
       case 5: return true;
@@ -235,9 +240,29 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
   };
 
   const nextStep = () => {
-    if (canProceed()) {
-      setCurrentStep(Math.min(currentStep + 1, 5));
+    if (!canProceed()) {
+      switch (currentStep) {
+        case 1:
+          alert('Please select a guest to proceed.');
+          break;
+        case 2:
+          if (!checkInDate || !checkOutDate) {
+            alert('Please select check-in and check-out dates.');
+          } else if (new Date(checkOutDate) <= new Date(checkInDate)) {
+            alert('Check-out date must be after check-in date.');
+          } else if (!selectedRoomType) {
+            alert('Please select a room type to proceed.');
+          }
+          break;
+        case 3:
+          alert('Please select a room to proceed.');
+          break;
+        default:
+          alert('Please complete all required steps.');
+      }
+      return;
     }
+    setCurrentStep(Math.min(currentStep + 1, 5));
   };
 
   const prevStep = () => {
@@ -508,6 +533,50 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
               </div>
             </div>
 
+            <div style={{ marginTop: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                Room Type <span style={{ color: '#ef4444' }}>*</span>
+              </label>
+              {loadingRoomTypes ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                  Loading room types...
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: '16px',
+                }}>
+                  {availableRoomTypes.map((roomType) => (
+                    <div
+                      key={roomType.id}
+                      onClick={() => setSelectedRoomType(roomType)}
+                      style={{
+                        padding: '16px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        background: selectedRoomType?.id === roomType.id ? 'rgba(99,102,241,0.05)' : 'var(--color-surface)',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget as HTMLDivElement).style.borderColor = '#6366f1'}
+                      onMouseLeave={(e) => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-border)'}
+                    >
+                      <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                        {roomType.name}
+                      </div>
+                      <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        {roomType.description || 'No description'}
+                      </div>
+                      <div style={{ fontSize: '14px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
+                        ${roomType.base_price ? roomType.base_price.toFixed(2) : '0.00'}/night
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div style={{ marginTop: '24px', padding: '16px', background: 'var(--color-background)', borderRadius: '8px' }}>
               <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
                 Duration: <strong>{checkInDate && checkOutDate ? Math.max(1, Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86400000)) : 0} night{(checkInDate && checkOutDate && Math.max(1, Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86400000)) !== 1 ? 's' : '')}</strong>
@@ -515,6 +584,11 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
               <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
                 Dates: <strong>{new Date(checkInDate).toLocaleDateString()}</strong> to <strong>{new Date(checkOutDate).toLocaleDateString()}</strong>
               </div>
+              {selectedRoomType && (
+                <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+                  Room Type: <strong>{selectedRoomType.name}</strong> (${selectedRoomType.base_price ? selectedRoomType.base_price.toFixed(2) : '0.00'}/night)
+                </div>
+              )}
             </div>
           </div>
         );
@@ -679,9 +753,12 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                 <div style={{ fontWeight: '700', color: '#6366f1', fontSize: '24px' }}>
                   ${pricing.totalAmount.toFixed(2)}
                 </div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
+                  ${pricing.roomRate.toFixed(2)} × {pricing.nights} night{pricing.nights !== 1 ? 's' : ''} + ${pricing.taxes.toFixed(2)} taxes
+                </div>
               </div>
 
-              <div>
+              <div style={{ marginTop: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
                   Special Requests
                 </label>
@@ -690,6 +767,30 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   rows={2}
                   placeholder="Any special requests..."
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                    background: 'var(--color-surface)',
+                    color: 'var(--color-text-primary)',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginTop: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                  Internal Notes
+                </label>
+                <textarea
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Internal notes (staff only)..."
                   style={{
                     width: '100%',
                     padding: '12px',

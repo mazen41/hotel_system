@@ -1,6 +1,7 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/login/page": "app/login/page.js",
-  "/dashboard/housekeeping/page": "app/dashboard/housekeeping/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/dashboard/rooms/page": "app/dashboard/rooms/page.js",
+  "/dashboard/room-types/page": "app/dashboard/room-types/page.js",
+  "/dashboard/rate-plans/[id]/page": "app/dashboard/rate-plans/[id]/page.js",
+  "/dashboard/reservations/page": "app/dashboard/reservations/page.js",
+  "/dashboard/rate-plans/page": "app/dashboard/rate-plans/page.js"
 }
