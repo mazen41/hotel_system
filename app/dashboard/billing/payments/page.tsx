@@ -31,7 +31,7 @@ export default function PaymentsPage() {
   const [formData, setFormData] = useState({
     folio_id: '',
     reservation_id: '',
-    payment_method: 'cash' as const,
+    payment_method: 'cash' as 'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'check' | 'online_payment',
     card_last_four: '',
     card_type: '',
     transaction_id: '',
@@ -127,7 +127,7 @@ export default function PaymentsPage() {
       setFormData({
         folio_id: '',
         reservation_id: '',
-        payment_method: 'cash',
+        payment_method: 'cash' as 'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'check' | 'online_payment',
         card_last_four: '',
         card_type: '',
         transaction_id: '',
@@ -789,7 +789,7 @@ export default function PaymentsPage() {
               </label>
               <select
                 value={formData.payment_method}
-                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as any })}
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as 'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'check' | 'online_payment' })}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -918,7 +918,7 @@ export default function PaymentsPage() {
                   setFormData({
                     folio_id: '',
                     reservation_id: '',
-                    payment_method: 'cash',
+                    payment_method: 'cash' as 'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'check' | 'online_payment',
                     card_last_four: '',
                     card_type: '',
                     transaction_id: '',
