@@ -68,6 +68,18 @@ export default function ReservationsPage() {
     return () => clearTimeout(delay);
   }, [searchTerm]);
 
+  // Close action menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (actionMenu !== null) {
+        setActionMenu(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [actionMenu]);
+
   function handleSort(field: string) {
     if (sortBy === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -660,7 +672,10 @@ export default function ReservationsPage() {
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'right', position: 'relative' }}>
                     <button
-                      onClick={() => setActionMenu(actionMenu === reservation.id ? null : reservation.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActionMenu(actionMenu === reservation.id ? null : reservation.id);
+                      }}
                       style={{
                         padding: '6px',
                         border: 'none',
@@ -678,18 +693,21 @@ export default function ReservationsPage() {
                     </button>
 
                     {actionMenu === reservation.id && (
-                      <div style={{
-                        position: 'absolute',
-                        right: '0',
-                        top: '100%',
-                        zIndex: 100,
-                        background: 'var(--color-surface)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-                        minWidth: '200px',
-                        padding: '6px',
-                      }}>
+                      <div 
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: 'absolute',
+                          right: '0',
+                          top: '100%',
+                          marginTop: '4px',
+                          zIndex: 1000,
+                          background: 'var(--color-surface)',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                          minWidth: '200px',
+                          padding: '6px',
+                        }}>
                         <button
                           onClick={() => {
                             window.location.href = `/dashboard/reservations/${reservation.id}`;
