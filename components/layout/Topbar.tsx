@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { notificationsApi } from '@/lib/api';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 interface TopbarProps {
   sidebarCollapsed: boolean;
@@ -465,6 +466,9 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
             </div>
           )}
         </div>
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         {/* Live badge */}
         <div style={{

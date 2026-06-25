@@ -1,5 +1,4 @@
 {
-  "/dashboard/reservations/[id]/page": "app/dashboard/reservations/[id]/page.js",
-  "/dashboard/billing/folios/page": "app/dashboard/billing/folios/page.js",
-  "/dashboard/reservations/page": "app/dashboard/reservations/page.js"
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

@@ -1058,7 +1058,7 @@ video {
 }
 
 :root {
-  /* Brand palette */
+  /* Brand palette - Dark mode (default) */
   --color-bg: #0a0a0f;
   --color-surface: #111118;
   --color-surface-2: #1a1a24;
@@ -1089,6 +1089,41 @@ video {
   /* Shadows */
   --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
   --shadow-elevated: 0 4px 24px rgba(0,0,0,0.5), 0 1px 6px rgba(0,0,0,0.3);
+}
+
+/* Light mode */
+.light {
+  /* Brand palette */
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-surface-2: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-light: #cbd5e1;
+
+  /* Sidebar */
+  --color-sidebar: #f8fafc;
+  --color-sidebar-active: #e2e8f0;
+
+  /* Text */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+
+  /* Accent */
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f52d6;
+  --color-accent-dim: rgba(99, 102, 241, 0.12);
+
+  /* Status */
+  --color-success: #10b981;
+  --color-success-dim: rgba(16, 185, 129, 0.12);
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-danger-dim: rgba(239, 68, 68, 0.12);
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-elevated: 0 4px 24px rgba(0,0,0,0.12), 0 1px 6px rgba(0,0,0,0.08);
 }
 
 * {
