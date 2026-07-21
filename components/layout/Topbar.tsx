@@ -1,11 +1,12 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { notificationsApi } from '@/lib/api';
 import ThemeToggle from '@/components/common/ThemeToggle';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface TopbarProps {
   sidebarCollapsed: boolean;
@@ -41,9 +42,20 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const locale = useLocale();
+  const t = useTranslations('layout');
+  
   const page = getBreadcrumb(pathname);
+  const pageKey = page.toLowerCase();
+  const isId = !isNaN(Number(page)) || page.startsWith('res_') || page.startsWith('g_');
+  const translatedPage = isId ? page : (t.has(pageKey) ? t(pageKey) : page);
+
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  const dateStr = now.toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', { 
+    weekday: 'long', 
+    month: 'short', 
+    day: 'numeric' 
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ guests: SearchResult[], reservations: SearchResult[], rooms: SearchResult[] }>({
@@ -151,6 +163,13 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
     }
   };
 
+  const toggleLanguage = () => {
+    const nextLocale = locale === 'en' ? 'ar' : 'en';
+    router.replace(pathname, { locale: nextLocale });
+  };
+
+  const isRtl = locale === 'ar';
+
   return (
     <header style={{
       height: '60px',
@@ -159,32 +178,32 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 28px 0 24px',
+      padding: isRtl ? '0 24px 0 28px' : '0 28px 0 24px',
       position: 'sticky',
       top: 0,
       zIndex: 50,
       flexShrink: 0,
     }}>
-      {/* Left: breadcrumb */}
+      {/* Left/Right breadcrumb based on direction */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{
           fontSize: '13px',
           color: 'var(--color-text-muted)',
           fontWeight: '400',
-        }}>HotelOS</span>
+        }}>{t('hotelOS')}</span>
         <span style={{ color: 'var(--color-border-light)', fontSize: '13px' }}>/</span>
         <span style={{
           fontSize: '13px',
           color: 'var(--color-text-primary)',
           fontWeight: '500',
-        }}>{page}</span>
+        }}>{translatedPage}</span>
       </div>
 
       {/* Center: search bar */}
       <div ref={searchRef} style={{ position: 'relative', width: '400px' }}>
         <input
           type="text"
-          placeholder="Search guests, reservations, rooms..."
+          placeholder={t('searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -200,14 +219,16 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
             color: 'var(--color-text-primary)',
             fontSize: '13px',
             outline: 'none',
+            textAlign: isRtl ? 'right' : 'left',
           }}
         />
         {isSearchOpen && (searchResults.guests.length > 0 || searchResults.reservations.length > 0 || searchResults.rooms.length > 0) && (
           <div style={{
             position: 'absolute',
             top: '100%',
-            left: 0,
-            right: 0,
+            left: isRtl ? 'auto' : 0,
+            right: isRtl ? 0 : 'auto',
+            width: '100%',
             background: 'var(--color-bg)',
             border: '1px solid var(--color-border)',
             borderRadius: '6px',
@@ -226,7 +247,8 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                }}>Guests</div>
+                  textAlign: isRtl ? 'right' : 'left',
+                }}>{t('guests')}</div>
                 {searchResults.guests.map((result) => (
                   <div
                     key={result.id}
@@ -236,6 +258,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                       cursor: 'pointer',
                       borderBottom: '1px solid var(--color-border-light)',
                       transition: 'background 0.2s',
+                      textAlign: isRtl ? 'right' : 'left',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -259,7 +282,8 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                }}>Reservations</div>
+                  textAlign: isRtl ? 'right' : 'left',
+                }}>{t('reservations')}</div>
                 {searchResults.reservations.map((result) => (
                   <div
                     key={result.id}
@@ -269,6 +293,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                       cursor: 'pointer',
                       borderBottom: '1px solid var(--color-border-light)',
                       transition: 'background 0.2s',
+                      textAlign: isRtl ? 'right' : 'left',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -292,7 +317,8 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                }}>Rooms</div>
+                  textAlign: isRtl ? 'right' : 'left',
+                }}>{t('rooms')}</div>
                 {searchResults.rooms.map((result) => (
                   <div
                     key={result.id}
@@ -301,6 +327,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                       padding: '10px 12px',
                       cursor: 'pointer',
                       transition: 'background 0.2s',
+                      textAlign: isRtl ? 'right' : 'left',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -319,12 +346,37 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
         )}
       </div>
 
-      {/* Right: date + notifications + user badge */}
+      {/* Right: date + language switcher + notifications + theme + user badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <span style={{
           fontSize: '12px',
           color: 'var(--color-text-muted)',
         }}>{dateStr}</span>
+
+        {/* Premium Language Switcher Toggle */}
+        <button
+          onClick={toggleLanguage}
+          style={{
+            background: 'var(--color-surface-2)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-primary)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'background 0.15s, transform 0.1s',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--color-hover)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--color-surface-2)'}
+        >
+          <span>🌐</span>
+          <span>{locale === 'en' ? 'العربية' : 'English'}</span>
+        </button>
 
         {/* Notification bell */}
         <div ref={notificationRef} style={{ position: 'relative' }}>
@@ -352,7 +404,8 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
               <span style={{
                 position: 'absolute',
                 top: '4px',
-                right: '4px',
+                right: isRtl ? 'auto' : '4px',
+                left: isRtl ? '4px' : 'auto',
                 background: 'var(--color-danger)',
                 color: 'white',
                 fontSize: '10px',
@@ -375,7 +428,8 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
             <div style={{
               position: 'absolute',
               top: '100%',
-              right: 0,
+              right: isRtl ? 'auto' : 0,
+              left: isRtl ? 0 : 'auto',
               width: '320px',
               background: 'var(--color-bg)',
               border: '1px solid var(--color-border)',
@@ -392,9 +446,10 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                direction: isRtl ? 'rtl' : 'ltr',
               }}>
                 <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
-                  Notifications
+                  {t('notifications')}
                 </span>
                 {unreadCount > 0 && (
                   <button
@@ -411,15 +466,15 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary-dim)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    Mark all read
+                    {t('markAllRead')}
                   </button>
                 )}
               </div>
 
-              <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+              <div style={{ maxHeight: '320px', overflowY: 'auto', direction: isRtl ? 'rtl' : 'ltr' }}>
                 {notifications.length === 0 ? (
                   <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '12px' }}>
-                    No notifications
+                    {t('noNotifications')}
                   </div>
                 ) : (
                   notifications.map((notification) => (
@@ -432,11 +487,12 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                         cursor: 'pointer',
                         background: notification.is_read ? 'transparent' : 'var(--color-primary-dim)',
                         transition: 'background 0.2s',
+                        textAlign: isRtl ? 'right' : 'left',
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = notification.is_read ? 'transparent' : 'var(--color-primary-dim)'}
                     >
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                         {!notification.is_read && (
                           <div style={{
                             width: '6px',
@@ -447,7 +503,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                             flexShrink: 0,
                           }} />
                         )}
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, textAlign: isRtl ? 'right' : 'left' }}>
                           <div style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '2px' }}>
                             {notification.title}
                           </div>
@@ -455,7 +511,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                             {notification.message}
                           </div>
                           <div style={{ fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                            {new Date(notification.created_at).toLocaleString()}
+                            {new Date(notification.created_at).toLocaleString(locale === 'ar' ? 'ar-EG' : 'en-US')}
                           </div>
                         </div>
                       </div>
@@ -479,6 +535,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
           border: '1px solid rgba(16,185,129,0.15)',
           borderRadius: '20px',
           padding: '4px 10px',
+          flexDirection: isRtl ? 'row-reverse' : 'row',
         }}>
           <div style={{
             width: '6px',
@@ -487,7 +544,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
             background: 'var(--color-success)',
             animation: 'pulse-dot 2s ease-in-out infinite',
           }} />
-          <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: '500' }}>Live</span>
+          <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: '500' }}>{t('live')}</span>
         </div>
 
         {/* User avatar */}
@@ -496,6 +553,7 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
+            flexDirection: isRtl ? 'row-reverse' : 'row',
           }}>
             <div style={{
               width: '30px',
@@ -513,12 +571,12 @@ export default function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
             }}>
               {user.name.charAt(0).toUpperCase()}
             </div>
-            <div style={{ lineHeight: 1.3 }}>
+            <div style={{ lineHeight: 1.3, textAlign: isRtl ? 'right' : 'left' }}>
               <div style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
                 {user.name}
               </div>
               <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                Administrator
+                {t('admin')}
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ratePlansApi, roomTypesApi, ApiError } from '@/lib/api';
 import type { RatePlan, RatePlanFormData, RoomType } from '@/types';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface RatePlanModalProps {
   onClose: () => void;
@@ -15,6 +16,51 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [loadingRoomTypes, setLoadingRoomTypes] = useState(false);
   
+  const locale = useLocale();
+  const t = useTranslations('ratePlans');
+  const tCommon = useTranslations('common');
+  const isRtl = locale === 'ar';
+
+  const ui = {
+    modalTitle: editRatePlan 
+      ? (isRtl ? 'تعديل خطة الأسعار' : 'Edit Rate Plan') 
+      : (isRtl ? 'خطة أسعار جديدة' : 'New Rate Plan'),
+    basicInfo: isRtl ? 'المعلومات الأساسية' : 'Basic Information',
+    nameLabel: isRtl ? 'اسم خطة الأسعار *' : 'Rate Plan Name *',
+    namePlaceholder: isRtl ? 'مثال: السعر القياسي، باقة الشركات' : 'e.g., Standard Rate, Corporate Package',
+    typeLabel: isRtl ? 'نوع خطة الأسعار' : 'Rate Plan Type',
+    descriptionLabel: isRtl ? 'الوصف' : 'Description',
+    descriptionPlaceholder: isRtl ? 'صف خطة الأسعار هذه...' : 'Describe this rate plan...',
+    pricingConfig: isRtl ? 'إعدادات الأسعار' : 'Pricing Configuration',
+    baseRateLabel: isRtl ? 'السعر الأساسي *' : 'Base Rate *',
+    pricingTypeLabel: isRtl ? 'نوع التسعير' : 'Pricing Type',
+    minNightsLabel: isRtl ? 'الحد الأدنى لليالي' : 'Minimum Nights',
+    maxNightsLabel: isRtl ? 'الحد الأقصى لليالي' : 'Maximum Nights',
+    maxNightsPlaceholder: isRtl ? 'بدون حد أقصى' : 'No limit',
+    priorityLabel: isRtl ? 'الأولوية' : 'Priority',
+    includeMealPlan: isRtl ? 'تضمين خطة الوجبات' : 'Include Meal Plan',
+    mealPlanTypeLabel: isRtl ? 'نوع خطة الوجبات' : 'Meal Plan Type',
+    selectMealPlan: isRtl ? 'اختر خطة الوجبات' : 'Select meal plan',
+    roomTypeRates: isRtl ? 'أسعار أنواع الغرف' : 'Room Type Rates',
+    loadingRoomTypes: isRtl ? 'جاري تحميل أنواع الغرف...' : 'Loading room types...',
+    basePriceHelp: isRtl ? 'الأساسي' : 'Base',
+    policies: isRtl ? 'السياسات' : 'Policies',
+    cancellationPolicyLabel: isRtl ? 'سياسة الإلغاء' : 'Cancellation Policy',
+    cancellationPolicyPlaceholder: isRtl ? 'مثال: إلغاء مجاني حتى 24 ساعة قبل موعد الوصول' : 'e.g., Free cancellation up to 24 hours before check-in',
+    paymentPolicyLabel: isRtl ? 'سياسة الدفع' : 'Payment Policy',
+    paymentPolicyPlaceholder: isRtl ? 'مثال: الدفع الكامل مطلوب عند تسجيل الوصول' : 'e.g., Full payment required at check-in',
+    additionalOptions: isRtl ? 'خيارات إضافية' : 'Additional Options',
+    occupancyPricing: isRtl ? 'تسعير على أساس الإشغال' : 'Occupancy-based pricing',
+    allowChildren: isRtl ? 'السماح بالأطفال' : 'Allow children',
+    allowExtraBeds: isRtl ? 'السماح بالأسرة الإضافية' : 'Allow extra beds',
+    activeLabel: isRtl ? 'نشط' : 'Active',
+    channelSync: isRtl ? 'مزامنة القنوات مفعلة' : 'Channel sync enabled',
+    cancel: tCommon('cancel'),
+    save: submitting 
+      ? (isRtl ? 'جاري الحفظ...' : 'Saving...') 
+      : (editRatePlan ? (isRtl ? 'تحديث خطة الأسعار' : 'Update Rate Plan') : (isRtl ? 'إنشاء خطة الأسعار' : 'Create Rate Plan')),
+  };
+
   // Form state
   const [formData, setFormData] = useState<RatePlanFormData>({
     name: '',
@@ -109,12 +155,44 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
       onSuccess();
     } catch (error) {
       if (error instanceof ApiError) {
-        alert(error.message || 'Failed to save rate plan');
+        alert(error.message || (isRtl ? 'فشل في حفظ خطة الأسعار' : 'Failed to save rate plan'));
       }
     } finally {
       setSubmitting(false);
     }
   }
+
+  const getMealPlanLabel = (mp: string) => {
+    switch (mp) {
+      case 'BB': return isRtl ? 'مبيت وإفطار (BB)' : 'Bed & Breakfast (BB)';
+      case 'HB': return isRtl ? 'نصف إقامة (HB)' : 'Half Board (HB)';
+      case 'FB': return isRtl ? 'إقامة كاملة (FB)' : 'Full Board (FB)';
+      case 'AI': return isRtl ? 'شامل كلياً (AI)' : 'All Inclusive (AI)';
+      case 'RO': return isRtl ? 'غرفة فقط (RO)' : 'Room Only (RO)';
+      default: return mp;
+    }
+  };
+
+  const getRatePlanTypeLabel = (type: string) => {
+    switch (type) {
+      case 'standard': return isRtl ? 'قياسي' : 'Standard';
+      case 'corporate': return isRtl ? 'شركات' : 'Corporate';
+      case 'seasonal': return isRtl ? 'موسمي' : 'Seasonal';
+      case 'package': return isRtl ? 'باقة شاملة' : 'Package';
+      case 'promotional': return isRtl ? 'ترويجي' : 'Promotional';
+      default: return type;
+    }
+  };
+
+  const getPricingTypeLabel = (type: string) => {
+    switch (type) {
+      case 'fixed': return isRtl ? 'سعر ثابت' : 'Fixed Rate';
+      case 'percentage': return isRtl ? 'نسبة مئوية' : 'Percentage';
+      case 'per_person': return isRtl ? 'لكل شخص' : 'Per Person';
+      case 'per_night': return isRtl ? 'لكل ليلة' : 'Per Night';
+      default: return type;
+    }
+  };
 
   return (
     <div style={{
@@ -126,6 +204,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
       justifyContent: 'center',
       zIndex: 1000,
       padding: '20px',
+      direction: isRtl ? 'rtl' : 'ltr',
     }}>
       <div style={{
         background: 'var(--color-surface)',
@@ -136,6 +215,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
         overflow: 'auto',
         border: '1px solid var(--color-border)',
         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+        textAlign: isRtl ? 'right' : 'left',
       }}>
         {/* Header */}
         <div style={{
@@ -148,9 +228,10 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
           top: 0,
           background: 'var(--color-surface)',
           zIndex: 10,
+          flexDirection: isRtl ? 'row-reverse' : 'row',
         }}>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
-            {editRatePlan ? 'Edit Rate Plan' : 'New Rate Plan'}
+            {ui.modalTitle}
           </h2>
           <button
             onClick={onClose}
@@ -175,20 +256,20 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
           {/* Basic Information */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
-              Basic Information
+              {ui.basicInfo}
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Rate Plan Name *
+                  {ui.nameLabel}
                 </label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Standard Rate, Corporate Package"
+                  placeholder={ui.namePlaceholder}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -198,13 +279,14 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    textAlign: isRtl ? 'right' : 'left',
                   }}
                 />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Rate Plan Type
+                  {ui.typeLabel}
                 </label>
                 <select
                   value={formData.type}
@@ -218,25 +300,26 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    direction: isRtl ? 'rtl' : 'ltr',
                   }}
                 >
-                  <option value="standard">Standard</option>
-                  <option value="corporate">Corporate</option>
-                  <option value="seasonal">Seasonal</option>
-                  <option value="package">Package</option>
-                  <option value="promotional">Promotional</option>
+                  <option value="standard">{getRatePlanTypeLabel('standard')}</option>
+                  <option value="corporate">{getRatePlanTypeLabel('corporate')}</option>
+                  <option value="seasonal">{getRatePlanTypeLabel('seasonal')}</option>
+                  <option value="package">{getRatePlanTypeLabel('package')}</option>
+                  <option value="promotional">{getRatePlanTypeLabel('promotional')}</option>
                 </select>
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Description
+                  {ui.descriptionLabel}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  placeholder="Describe this rate plan..."
+                  placeholder={ui.descriptionPlaceholder}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -248,6 +331,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     color: 'var(--color-text-primary)',
                     resize: 'vertical',
                     fontFamily: 'inherit',
+                    textAlign: isRtl ? 'right' : 'left',
                   }}
                 />
               </div>
@@ -257,13 +341,13 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
           {/* Pricing Configuration */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
-              Pricing Configuration
+              {ui.pricingConfig}
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Base Rate *
+                  {ui.baseRateLabel}
                 </label>
                 <input
                   type="number"
@@ -282,13 +366,14 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    textAlign: 'left',
                   }}
                 />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Pricing Type
+                  {ui.pricingTypeLabel}
                 </label>
                 <select
                   value={formData.pricing_type}
@@ -302,18 +387,19 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    direction: isRtl ? 'rtl' : 'ltr',
                   }}
                 >
-                  <option value="fixed">Fixed Rate</option>
-                  <option value="percentage">Percentage</option>
-                  <option value="per_person">Per Person</option>
-                  <option value="per_night">Per Night</option>
+                  <option value="fixed">{getPricingTypeLabel('fixed')}</option>
+                  <option value="percentage">{getPricingTypeLabel('percentage')}</option>
+                  <option value="per_person">{getPricingTypeLabel('per_person')}</option>
+                  <option value="per_night">{getPricingTypeLabel('per_night')}</option>
                 </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Minimum Nights
+                  {ui.minNightsLabel}
                 </label>
                 <input
                   type="number"
@@ -330,20 +416,21 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    textAlign: 'left',
                   }}
                 />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Maximum Nights
+                  {ui.maxNightsLabel}
                 </label>
                 <input
                   type="number"
                   min="1"
                   value={formData.max_nights || ''}
                   onChange={(e) => setFormData({ ...formData, max_nights: e.target.value ? parseInt(e.target.value) : null })}
-                  placeholder="No limit"
+                  placeholder={ui.maxNightsPlaceholder}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -353,13 +440,14 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    textAlign: 'left',
                   }}
                 />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Priority
+                  {ui.priorityLabel}
                 </label>
                 <input
                   type="number"
@@ -376,12 +464,13 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    textAlign: 'left',
                   }}
                 />
               </div>
             </div>
 
-            <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
               <input
                 type="checkbox"
                 id="meal_plan_included"
@@ -394,14 +483,14 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                 }}
               />
               <label htmlFor="meal_plan_included" style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
-                Include Meal Plan
+                {ui.includeMealPlan}
               </label>
             </div>
 
             {formData.meal_plan_included && (
               <div style={{ marginTop: '12px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Meal Plan Type
+                  {ui.mealPlanTypeLabel}
                 </label>
                 <select
                   value={formData.meal_plan_type}
@@ -415,14 +504,15 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     outline: 'none',
                     background: 'var(--color-background)',
                     color: 'var(--color-text-primary)',
+                    direction: isRtl ? 'rtl' : 'ltr',
                   }}
                 >
-                  <option value="">Select meal plan</option>
-                  <option value="BB">Bed & Breakfast (BB)</option>
-                  <option value="HB">Half Board (HB)</option>
-                  <option value="FB">Full Board (FB)</option>
-                  <option value="AI">All Inclusive (AI)</option>
-                  <option value="RO">Room Only (RO)</option>
+                  <option value="">{ui.selectMealPlan}</option>
+                  <option value="BB">{getMealPlanLabel('BB')}</option>
+                  <option value="HB">{getMealPlanLabel('HB')}</option>
+                  <option value="FB">{getMealPlanLabel('FB')}</option>
+                  <option value="AI">{getMealPlanLabel('AI')}</option>
+                  <option value="RO">{getMealPlanLabel('RO')}</option>
                 </select>
               </div>
             )}
@@ -431,12 +521,12 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
           {/* Room Type Rates */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
-              Room Type Rates
+              {ui.roomTypeRates}
             </h3>
             
             {loadingRoomTypes ? (
               <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)' }}>
-                Loading room types...
+                {ui.loadingRoomTypes}
               </div>
             ) : (
               <div style={{
@@ -449,14 +539,14 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                 {roomTypes.map((roomType) => {
                   const roomTypeRate = formData.room_type_rates?.find(rtr => rtr.room_type_id === roomType.id);
                   return (
-                    <div key={roomType.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '12px', borderBottom: roomTypes.indexOf(roomType) < roomTypes.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                      <div style={{ flex: 1 }}>
+                    <div key={roomType.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '12px', borderBottom: roomTypes.indexOf(roomType) < roomTypes.length - 1 ? '1px solid var(--color-border)' : 'none', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                      <div style={{ flex: 1, textAlign: isRtl ? 'right' : 'left' }}>
                         <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
                           {roomType.name}
                         </div>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                           <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                            Base: ${roomType.base_price.toFixed(2)}
+                            {ui.basePriceHelp}: {isRtl ? `${roomType.base_price.toFixed(2)} $` : `$${roomType.base_price.toFixed(2)}`}
                           </span>
                           {roomType.meal_plan && (
                             <span style={{
@@ -467,17 +557,17 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                               color: '#6366f1',
                               fontWeight: '500',
                             }}>
-                              {roomType.meal_plan}
+                              {getMealPlanLabel(roomType.meal_plan)}
                             </span>
                           )}
                           {roomType.rates && Object.keys(roomType.rates).length > 0 && (
                             <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                              ({Object.entries(roomType.rates).map(([k, v]) => `${k}:$${v}`).join(', ')})
+                              ({Object.entries(roomType.rates).map(([k, v]) => `${k}:${isRtl ? `${v} $` : `$${v}`}`).join(', ')})
                             </span>
                           )}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                         <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>$</span>
                         <input
                           type="number"
@@ -494,7 +584,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                             outline: 'none',
                             background: 'var(--color-surface)',
                             color: 'var(--color-text-primary)',
-                            textAlign: 'right',
+                            textAlign: 'left',
                           }}
                         />
                       </div>
@@ -508,19 +598,19 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
           {/* Policies */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
-              Policies
+              {ui.policies}
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Cancellation Policy
+                  {ui.cancellationPolicyLabel}
                 </label>
                 <textarea
                   value={formData.cancellation_policy}
                   onChange={(e) => setFormData({ ...formData, cancellation_policy: e.target.value })}
                   rows={2}
-                  placeholder="e.g., Free cancellation up to 24 hours before check-in"
+                  placeholder={ui.cancellationPolicyPlaceholder}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -532,19 +622,20 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     color: 'var(--color-text-primary)',
                     resize: 'vertical',
                     fontFamily: 'inherit',
+                    textAlign: isRtl ? 'right' : 'left',
                   }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                  Payment Policy
+                  {ui.paymentPolicyLabel}
                 </label>
                 <textarea
                   value={formData.payment_policy}
                   onChange={(e) => setFormData({ ...formData, payment_policy: e.target.value })}
                   rows={2}
-                  placeholder="e.g., Full payment required at check-in"
+                  placeholder={ui.paymentPolicyPlaceholder}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -556,6 +647,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                     color: 'var(--color-text-primary)',
                     resize: 'vertical',
                     fontFamily: 'inherit',
+                    textAlign: isRtl ? 'right' : 'left',
                   }}
                 />
               </div>
@@ -565,79 +657,79 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
           {/* Additional Options */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
-              Additional Options
+              {ui.additionalOptions}
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
                   <input
                     type="checkbox"
                     checked={formData.occupancy_based_pricing}
                     onChange={(e) => setFormData({ ...formData, occupancy_based_pricing: e.target.checked })}
                     style={{ accentColor: '#6366f1' }}
                   />
-                  <span>Occupancy-based pricing</span>
+                  <span>{ui.occupancyPricing}</span>
                 </label>
               </div>
 
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
                   <input
                     type="checkbox"
                     checked={formData.allow_children}
                     onChange={(e) => setFormData({ ...formData, allow_children: e.target.checked })}
                     style={{ accentColor: '#6366f1' }}
                   />
-                  <span>Allow children</span>
+                  <span>{ui.allowChildren}</span>
                 </label>
               </div>
 
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
                   <input
                     type="checkbox"
                     checked={formData.allow_extra_beds}
                     onChange={(e) => setFormData({ ...formData, allow_extra_beds: e.target.checked })}
                     style={{ accentColor: '#6366f1' }}
                   />
-                  <span>Allow extra beds</span>
+                  <span>{ui.allowExtraBeds}</span>
                 </label>
               </div>
 
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
                   <input
                     type="checkbox"
                     checked={formData.meal_plan_included}
                     onChange={(e) => setFormData({ ...formData, meal_plan_included: e.target.checked })}
                     style={{ accentColor: '#6366f1' }}
                   />
-                  <span>Meal plan included</span>
+                  <span>{ui.includeMealPlan}</span>
                 </label>
               </div>
 
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
                   <input
                     type="checkbox"
                     checked={formData.active}
                     onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
                     style={{ accentColor: '#6366f1' }}
                   />
-                  <span>Active</span>
+                  <span>{ui.activeLabel}</span>
                 </label>
               </div>
 
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-primary)', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row', justifyContent: 'flex-end' }}>
                   <input
                     type="checkbox"
                     checked={formData.channel_sync_enabled}
                     onChange={(e) => setFormData({ ...formData, channel_sync_enabled: e.target.checked })}
                     style={{ accentColor: '#6366f1' }}
                   />
-                  <span>Channel sync enabled</span>
+                  <span>{ui.channelSync}</span>
                 </label>
               </div>
             </div>
@@ -648,8 +740,9 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
             padding: '20px 0',
             borderTop: '1px solid var(--color-border)',
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: isRtl ? 'flex-start' : 'flex-end',
             gap: '12px',
+            flexDirection: isRtl ? 'row-reverse' : 'row',
           }}>
             <button
               type="button"
@@ -665,7 +758,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                 cursor: 'pointer',
               }}
             >
-              Cancel
+              {ui.cancel}
             </button>
             <button
               type="submit"
@@ -682,7 +775,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                 opacity: submitting ? 0.5 : 1,
               }}
             >
-              {submitting ? 'Saving...' : editRatePlan ? 'Update Rate Plan' : 'Create Rate Plan'}
+              {ui.save}
             </button>
           </div>
         </form>

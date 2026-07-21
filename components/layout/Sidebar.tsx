@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/routing';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -12,6 +12,7 @@ interface SidebarProps {
 
 interface NavItem {
   label: string;
+  labelKey: string;
   href: string;
   icon: React.ReactNode;
 }
@@ -206,27 +207,30 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard',    href: '/dashboard',                      icon: <LayoutIcon /> },
-  { label: 'Guests',       href: '/dashboard/guests',               icon: <GuestsIcon /> },
-  { label: 'Reservations', href: '/dashboard/reservations',         icon: <ReservationsIcon /> },
-  { label: 'Calendar',     href: '/dashboard/reservations/calendar',icon: <CalendarIcon /> },
-  { label: 'Billing',      href: '/dashboard/billing/folios',       icon: <BillingIcon /> },
-  { label: 'Reports',      href: '/dashboard/reports',              icon: <ReportsIcon /> },
-  { label: 'Availability', href: '/dashboard/availability',         icon: <AvailabilityIcon /> },
-  { label: 'Room Map',     href: '/dashboard/room-map',             icon: <RoomMapIcon /> },
-  { label: 'Housekeeping', href: '/dashboard/housekeeping',         icon: <HousekeepingIcon /> },
-  { label: 'Rate Plans',   href: '/dashboard/rate-plans',           icon: <RatePlansIcon /> },
-  { label: 'Room Types',   href: '/dashboard/room-types',           icon: <RoomTypesIcon /> },
-  { label: 'Rooms',        href: '/dashboard/rooms',                icon: <RoomsIcon /> },
-  { label: 'Users',        href: '/dashboard/users',                icon: <UsersIcon /> },
-  { label: 'Audit Logs',   href: '/dashboard/audit-logs',           icon: <AuditLogsIcon /> },
-  { label: 'Settings',     href: '/dashboard/settings',             icon: <SettingsIcon /> },
+  { label: 'Dashboard',    labelKey: 'dashboard',    href: '/dashboard',                      icon: <LayoutIcon /> },
+  { label: 'Guests',       labelKey: 'guests',       href: '/dashboard/guests',               icon: <GuestsIcon /> },
+  { label: 'Reservations', labelKey: 'reservations', href: '/dashboard/reservations',         icon: <ReservationsIcon /> },
+  { label: 'Calendar',     labelKey: 'calendar',     href: '/dashboard/reservations/calendar',icon: <CalendarIcon /> },
+  { label: 'Billing',      labelKey: 'billing',      href: '/dashboard/billing/folios',       icon: <BillingIcon /> },
+  { label: 'Reports',      labelKey: 'reports',      href: '/dashboard/reports',              icon: <ReportsIcon /> },
+  { label: 'Availability', labelKey: 'availability', href: '/dashboard/availability',         icon: <AvailabilityIcon /> },
+  { label: 'Room Map',     labelKey: 'roomMap',      href: '/dashboard/room-map',             icon: <RoomMapIcon /> },
+  { label: 'Housekeeping', labelKey: 'housekeeping', href: '/dashboard/housekeeping',         icon: <HousekeepingIcon /> },
+  { label: 'Rate Plans',   labelKey: 'ratePlans',    href: '/dashboard/rate-plans',           icon: <RatePlansIcon /> },
+  { label: 'Room Types',   labelKey: 'roomTypes',    href: '/dashboard/room-types',           icon: <RoomTypesIcon /> },
+  { label: 'Rooms',        labelKey: 'rooms',        href: '/dashboard/rooms',                icon: <RoomsIcon /> },
+  { label: 'Users',        labelKey: 'users',        href: '/dashboard/users',                icon: <UsersIcon /> },
+  { label: 'Audit Logs',   labelKey: 'auditLogs',    href: '/dashboard/audit-logs',           icon: <AuditLogsIcon /> },
+  { label: 'Settings',     labelKey: 'settings',     href: '/dashboard/settings',             icon: <SettingsIcon /> },
 ];
 
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
+  const locale = useLocale();
+  const isRtl = locale === 'ar';
+  const t = useTranslations('layout');
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -239,11 +243,13 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <aside style={{
       position: 'fixed',
       top: 0,
-      left: 0,
+      left: isRtl ? 'auto' : 0,
+      right: isRtl ? 0 : 'auto',
       bottom: 0,
       width,
       background: 'var(--color-sidebar)',
-      borderRight: '1px solid var(--color-border)',
+      borderRight: isRtl ? 'none' : '1px solid var(--color-border)',
+      borderLeft: isRtl ? '1px solid var(--color-border)' : 'none',
       transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
       display: 'flex',
       flexDirection: 'column',
@@ -289,7 +295,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               fontWeight: '700',
               color: 'var(--color-text-primary)',
               letterSpacing: '-0.4px',
-            }}>HotelOS</span>
+            }}>{t('hotelOS')}</span>
           )}
         </div>
         {!collapsed && (
@@ -307,9 +313,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               justifyContent: 'center',
               flexShrink: 0,
             }}
-            title="Collapse sidebar"
+            title={t('collapse')}
           >
-            <ChevronIcon direction="left" />
+            <ChevronIcon direction={isRtl ? "right" : "left"} />
           </button>
         )}
         {collapsed && (
@@ -318,7 +324,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             style={{
               position: 'absolute',
               top: '14px',
-              right: '8px',
+              right: isRtl ? 'auto' : '8px',
+              left: isRtl ? '8px' : 'auto',
               background: 'transparent',
               border: 'none',
               color: 'var(--color-text-muted)',
@@ -329,9 +336,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            title="Expand sidebar"
+            title={t('expand')}
           >
-            <ChevronIcon direction="right" />
+            <ChevronIcon direction={isRtl ? "left" : "right"} />
           </button>
         )}
       </div>
@@ -347,15 +354,14 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           padding: collapsed ? '0' : '0 8px',
           marginBottom: '6px',
           marginTop: '4px',
-          textAlign: collapsed ? 'center' : 'left',
+          textAlign: collapsed ? 'center' : (isRtl ? 'right' : 'left'),
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}>
-          {collapsed ? '•' : 'Main'}
+          {collapsed ? '•' : t('main')}
         </div>
 
         {NAV_ITEMS.map(item => {
-          // Hide Users link for non-admin users
           if (item.label === 'Users' && user?.role !== 'Admin') {
             return null;
           }
@@ -365,7 +371,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? t(item.labelKey) : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -400,13 +406,14 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               {isActive && (
                 <div style={{
                   position: 'absolute',
-                  left: 0,
+                  left: isRtl ? 'auto' : 0,
+                  right: isRtl ? 0 : 'auto',
                   top: '50%',
                   transform: 'translateY(-50%)',
                   width: '3px',
                   height: '18px',
                   background: 'var(--color-accent)',
-                  borderRadius: '0 2px 2px 0',
+                  borderRadius: isRtl ? '2px 0 0 2px' : '0 2px 2px 0',
                 }} />
               )}
               <span style={{
@@ -416,7 +423,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               }}>
                 {item.icon}
               </span>
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && <span>{t(item.labelKey)}</span>}
             </Link>
           );
         })}
@@ -438,6 +445,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             marginBottom: '4px',
             borderRadius: '8px',
             background: 'rgba(255,255,255,0.03)',
+            direction: isRtl ? 'rtl' : 'ltr',
           }}>
             <div style={{
               width: '28px',
@@ -454,7 +462,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             }}>
               {user.name.charAt(0).toUpperCase()}
             </div>
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{ overflow: 'hidden', textAlign: isRtl ? 'right' : 'left' }}>
               <div style={{
                 fontSize: '12px',
                 fontWeight: '500',
@@ -478,7 +486,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          title={collapsed ? 'Logout' : undefined}
+          title={collapsed ? t('logout') : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -505,7 +513,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           }}
         >
           <LogoutIcon />
-          {!collapsed && <span>{loggingOut ? 'Signing out…' : 'Logout'}</span>}
+          {!collapsed && <span>{loggingOut ? t('loggingOut') : t('logout')}</span>}
         </button>
       </div>
     </aside>

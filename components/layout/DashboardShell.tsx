@@ -5,11 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/layout/Sidebar';
 import Topbar from '@/components/layout/Topbar';
+import { useLocale, useTranslations } from 'next-intl';
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const locale = useLocale();
+  const isRtl = locale === 'ar';
+  const t = useTranslations('common');
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -43,7 +47,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <path d="M9 22V12h6v10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Loading…</span>
+          <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{t('loading')}</span>
         </div>
         <style>{`
           @keyframes pulse {
@@ -60,12 +64,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const SIDEBAR_WIDTH = sidebarCollapsed ? '64px' : '240px';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)', direction: isRtl ? 'rtl' : 'ltr' }}>
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
       <div style={{
         flex: 1,
-        marginLeft: SIDEBAR_WIDTH,
-        transition: 'margin-left 0.25s cubic-bezier(0.4,0,0.2,1)',
+        marginLeft: isRtl ? 0 : SIDEBAR_WIDTH,
+        marginRight: isRtl ? SIDEBAR_WIDTH : 0,
+        transition: 'margin-left 0.25s cubic-bezier(0.4,0,0.2,1), margin-right 0.25s cubic-bezier(0.4,0,0.2,1)',
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
@@ -78,3 +83,4 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     </div>
   );
 }
+
