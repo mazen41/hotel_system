@@ -172,8 +172,8 @@ export default function RoomMapPage() {
           <button
             onClick={() => setCurrentDate(new Date())}
             style={{
-              padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '12px', cursor: 'pointer',
-              ...(isToday(currentDate) ? { background: '#6366f1', color: 'white', border: 'none' } : { background: 'var(--color-surface)', color: 'var(--color-text-primary)' })
+              padding: '6px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',
+              ...(isToday(currentDate) ? { background: '#6366f1', color: 'white', border: 'none' } : { background: 'var(--color-surface)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' })
             }}
           >
             {tCommon('today')}

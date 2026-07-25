@@ -524,6 +524,7 @@ export default function ReservationsPage() {
       {showAvailabilityPanel && (
         <AvailabilityPanel
           onClose={() => setShowAvailabilityPanel(false)}
+          onSelectRoom={() => setShowAvailabilityPanel(false)}
         />
       )}
     </div>

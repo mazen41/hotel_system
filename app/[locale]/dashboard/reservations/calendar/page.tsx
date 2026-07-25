@@ -142,8 +142,8 @@ export default function CalendarPage() {
 
   // ─── Derived Data ────────────────────────────────────────────────────────────
 
-  const floors = [...new Set(rooms.map(r => r.floor).filter(Boolean))].sort();
-  const roomTypes = [...new Set(rooms.map(r => r.room_type?.name).filter(Boolean))].sort();
+  const floors = [...new Set(rooms.map(r => r.floor).filter(Boolean))].sort() as string[];
+  const roomTypes = [...new Set(rooms.map(r => r.room_type?.name).filter(Boolean))].sort() as string[];
 
   const filteredRooms = rooms.filter(r => {
     if (filterFloor && r.floor !== filterFloor) return false;

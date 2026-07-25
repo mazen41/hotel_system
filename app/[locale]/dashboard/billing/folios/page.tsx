@@ -341,8 +341,8 @@ export default function FoliosPage() {
                   <td style={{ padding: '14px 16px', color: 'var(--color-text-primary)' }}>
                     {folio.guest ? `${folio.guest.first_name} ${folio.guest.last_name}` : '-'}
                   </td>
-                  <td style={{ padding: '14px 16px', fontWeight: '600', color: folio.balance > 0 ? '#ef4444' : '#22c55e' }}>
-                    {isRtl ? `${folio.balance.toFixed(2)} $` : `$${folio.balance.toFixed(2)}`}
+                  <td style={{ padding: '14px 16px', fontWeight: '600', color: folio.balance_due > 0 ? '#ef4444' : '#22c55e' }}>
+                    {isRtl ? `${folio.balance_due.toFixed(2)} $` : `$${folio.balance_due.toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{

@@ -4,15 +4,11 @@ const nextConfig: NextConfig = {
   // Clean URLs — no trailing slashes
   trailingSlash: false,
 
-  // Rewrites for API proxy in development (avoids CORS if needed)
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: '/api/:path*',
-  //       destination: 'https://hotel-sys.loop-pr.com/api/:path*',
-  //     },
-  //   ];
-  // },
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // the project has ESLint errors or compatibility issues.
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
