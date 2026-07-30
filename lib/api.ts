@@ -565,15 +565,6 @@ export const reservationsApi = {
     ),
 
   /**
-   * Mark reservation as no-show (applies penalty charge).
-   */
-  markNoShow: (id: number) =>
-    request<{ message: string; data: import('@/types').Reservation }>(
-      `/reservations/${id}/no-show`,
-      { method: 'POST', body: JSON.stringify({}) }
-    ),
-
-  /**
    * Split reservation into two with different rooms.
    */
   split: (id: number, data: { room_id: number; adults?: number; children?: number }) =>
