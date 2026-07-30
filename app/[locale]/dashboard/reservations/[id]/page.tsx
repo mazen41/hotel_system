@@ -101,8 +101,17 @@ export default function ReservationDetailPage() {
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSuccessMessage(error.message || (isRtl ? 'فشل تسجيل مغادرة النزيل' : 'Failed to check out guest'));
-        setTimeout(() => setSuccessMessage(null), 3000);
+        // Handle outstanding balance error
+        if (error.status === 409 && (error as any).balance_due) {
+          const balanceDue = (error as any).balance_due;
+          const message = isRtl 
+            ? `لا يمكن إتمام المغادرة. هناك رصيد مستحق: ${balanceDue.toFixed(2)}`
+            : `Cannot check out with outstanding balance: ${balanceDue.toFixed(2)}`;
+          setSuccessMessage(message);
+        } else {
+          setSuccessMessage(error.message || (isRtl ? 'فشل تسجيل مغادرة النزيل' : 'Failed to check out guest'));
+        }
+        setTimeout(() => setSuccessMessage(null), 5000);
       }
     }
   }
@@ -121,6 +130,27 @@ export default function ReservationDetailPage() {
     } catch (error) {
       if (error instanceof ApiError) {
         setSuccessMessage(error.message || (isRtl ? 'فشل إلغاء الحجز' : 'Failed to cancel reservation'));
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    }
+  }
+
+  async function handleMarkNoShow() {
+    if (!reservation) return;
+    const confirmMsg = isRtl 
+      ? 'هل أنت متأكد من تسجيل هذا الحجز كـ "عدم ظهور"؟ سيتم تطبيق رسوم جزائية لمدة ليلة واحدة.' 
+      : 'Are you sure you want to mark this reservation as no-show? A one-night penalty charge will be applied.';
+    
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      await reservationsApi.markNoShow(reservation.id);
+      setSuccessMessage(isRtl ? 'تم تسجيل عدم الظهور بنجاح! تم تطبيق رسوم جزائية.' : 'No-show marked successfully! Penalty charge applied.');
+      await fetchReservation();
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSuccessMessage(error.message || (isRtl ? 'فشل تسجيل عدم الظهور' : 'Failed to mark no-show'));
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     }
@@ -287,21 +317,40 @@ export default function ReservationDetailPage() {
           </button>
         )}
         {(reservation.status === 'confirmed' || reservation.status === 'pending') && (
-          <button
-            onClick={handleCancel}
-            style={{
-              padding: '10px 20px',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
-              background: 'var(--color-surface)',
-              color: '#ef4444',
-              cursor: 'pointer',
-            }}
-          >
-            {tCommon('cancel')}
-          </button>
+          <>
+            <button
+              onClick={handleCancel}
+              style={{
+                padding: '10px 20px',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                background: 'var(--color-surface)',
+                color: '#ef4444',
+                cursor: 'pointer',
+              }}
+            >
+              {tCommon('cancel')}
+            </button>
+            {reservation.status === 'confirmed' && (
+              <button
+                onClick={handleMarkNoShow}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: 'var(--color-surface)',
+                  color: '#f59e0b',
+                  cursor: 'pointer',
+                }}
+              >
+                {isRtl ? 'عدم ظهور' : 'No-Show'}
+              </button>
+            )}
+          </>
         )}
       </div>
 

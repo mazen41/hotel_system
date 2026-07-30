@@ -10,12 +10,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://hotel-sys.loop-pr.c
 export class ApiError extends Error {
   status: number;
   errors?: Record<string, string[]>;
+  data?: Record<string, any>;
 
-  constructor(message: string, status: number, errors?: Record<string, string[]>) {
+  constructor(message: string, status: number, errors?: Record<string, string[]>, data?: Record<string, any>) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.errors = errors;
+    this.data = data;
   }
 }
 
@@ -26,14 +28,17 @@ function getToken(): string | null {
 
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  useApiKey = false
 ): Promise<T> {
   const token = getToken();
+  const apiKey = process.env.NEXT_PUBLIC_POS_API_KEY;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(useApiKey && apiKey ? { 'X-API-Key': apiKey } : {}),
     ...(options.headers as Record<string, string> ?? {}),
   };
 
@@ -48,7 +53,8 @@ async function request<T>(
     throw new ApiError(
       data.message ?? 'An unexpected error occurred.',
       response.status,
-      data.errors
+      data.errors,
+      data
     );
   }
 
@@ -361,13 +367,16 @@ export const guestsApi = {
 
   /**
    * Quick search for guests (faster, limited results).
+   * Uses API key for POS integration endpoint.
    */
   search: (query: string, perPage?: number) => {
     const queryString = new URLSearchParams();
     queryString.append('q', query);
     if (perPage) queryString.append('per_page', String(perPage));
     return request<{ data: import('@/types').Guest[] }>(
-      `/guests/search?${queryString.toString()}`
+      `/guests/search?${queryString.toString()}`,
+      undefined,
+      true // Use API key
     );
   },
 
@@ -552,6 +561,15 @@ export const reservationsApi = {
   expressCheckOut: (id: number) =>
     request<{ message: string; data: import('@/types').Reservation }>(
       `/reservations/${id}/express-check-out`,
+      { method: 'POST', body: JSON.stringify({}) }
+    ),
+
+  /**
+   * Mark reservation as no-show (applies penalty charge).
+   */
+  markNoShow: (id: number) =>
+    request<{ message: string; data: import('@/types').Reservation }>(
+      `/reservations/${id}/no-show`,
       { method: 'POST', body: JSON.stringify({}) }
     ),
 
@@ -858,7 +876,8 @@ export const billingApi = {
     create: (data: import('@/types').FolioFormData) =>
       request<{ message: string; data: import('@/types').Folio }>(
         '/billing/folios',
-        { method: 'POST', body: JSON.stringify(data) }
+        { method: 'POST', body: JSON.stringify(data) },
+        true // Use API key for POS integration
       ),
 
     update: (id: number, data: Partial<import('@/types').FolioFormData>) =>
@@ -880,6 +899,13 @@ export const billingApi = {
       request<{ message: string; data: import('@/types').Folio }>(
         `/billing/folios/${id}/reopen`,
         { method: 'POST', body: JSON.stringify({}) }
+      ),
+
+    lookupOpenForReservation: (reservationId: number) =>
+      request<{ data: { id: number; folio_number: string } | null }>(
+        `/billing/folios/lookup?reservation_id=${reservationId}`,
+        undefined,
+        true // Use API key for POS integration
       ),
   },
 
@@ -930,7 +956,8 @@ export const billingApi = {
     create: (data: import('@/types').ChargeFormData) =>
       request<{ message: string; data: import('@/types').Charge }>(
         '/billing/charges',
-        { method: 'POST', body: JSON.stringify(data) }
+        { method: 'POST', body: JSON.stringify(data) },
+        true // Use API key for POS integration
       ),
 
     update: (id: number, data: Partial<import('@/types').ChargeFormData>) =>

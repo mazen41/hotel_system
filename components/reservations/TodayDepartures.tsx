@@ -46,8 +46,14 @@ export default function TodayDepartures({ limit = 10, showHeader = true }: Today
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSuccessMessage(error.message || 'Failed to complete express check-out');
-        setTimeout(() => setSuccessMessage(null), 3000);
+        // Handle outstanding balance error
+        if (error.status === 409 && (error as any).balance_due) {
+          const balanceDue = (error as any).balance_due;
+          setSuccessMessage(`Cannot check out with outstanding balance: $${balanceDue.toFixed(2)}`);
+        } else {
+          setSuccessMessage(error.message || 'Failed to complete express check-out');
+        }
+        setTimeout(() => setSuccessMessage(null), 5000);
       }
     }
   }
