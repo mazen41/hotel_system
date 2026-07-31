@@ -97,19 +97,19 @@ export default function ReservationsPage() {
 
   async function handleCheckIn(reservation: Reservation) {
     if (reservation.status !== 'confirmed') {
-      setSuccessMessage(isRtl ? 'يمكن تسجيل الوصول للحجوزات المؤكدة فقط.' : 'Only confirmed reservations can be checked in.');
+      setSuccessMessage(t('onlyConfirmedCheckIn'));
       setTimeout(() => setSuccessMessage(null), 3000);
       return;
     }
     try {
       await reservationsApi.checkIn(reservation.id);
-      setSuccessMessage(isRtl ? 'تم تسجيل وصول النزيل بنجاح!' : 'Guest checked in successfully!');
+      setSuccessMessage(t('guestCheckedIn'));
       await fetchReservations();
       setActionMenu(null);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSuccessMessage(error.message || (isRtl ? 'فشل تسجيل وصول النزيل' : 'Failed to check in guest'));
+        setSuccessMessage(error.message || t('failedCheckIn'));
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     }
@@ -117,59 +117,58 @@ export default function ReservationsPage() {
 
   async function handleCheckOut(reservation: Reservation) {
     if (reservation.status !== 'checked_in') {
-      setSuccessMessage(isRtl ? 'يمكن تسجيل المغادرة للحجوزات التي تم تسجيل وصولها فقط.' : 'Only checked-in reservations can be checked out.');
+      setSuccessMessage(t('onlyCheckedInCheckOut'));
       setTimeout(() => setSuccessMessage(null), 3000);
       return;
     }
     try {
       await reservationsApi.checkOut(reservation.id);
-      setSuccessMessage(isRtl ? 'تم تسجيل مغادرة النزيل بنجاح!' : 'Guest checked out successfully!');
+      setSuccessMessage(t('guestCheckedOut'));
       await fetchReservations();
       setActionMenu(null);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSuccessMessage(error.message || (isRtl ? 'فشل تسجيل مغادرة النزيل' : 'Failed to check out guest'));
+        setSuccessMessage(error.message || t('failedCheckOut'));
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     }
   }
 
   async function handleCancel(reservation: Reservation) {
-    const confirmMsg = isRtl ? `إلغاء الحجز رقم ${reservation.reservation_number}؟` : `Cancel reservation ${reservation.reservation_number}?`;
+    const confirmMsg = t('cancelConfirm').replace('{number}', reservation.reservation_number);
     if (!confirm(confirmMsg)) return;
     
-    const reasonMsg = isRtl ? 'سبب الإلغاء:' : 'Cancellation reason:';
-    const reason = prompt(reasonMsg);
+    const reason = prompt(t('cancelReason'));
     if (!reason) return;
 
     try {
       await reservationsApi.cancel(reservation.id, reason);
-      setSuccessMessage(isRtl ? 'تم إلغاء الحجز بنجاح!' : 'Reservation cancelled successfully!');
+      setSuccessMessage(t('successCancel'));
       await fetchReservations();
       setActionMenu(null);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSuccessMessage(error.message || (isRtl ? 'فشل إلغاء الحجز' : 'Failed to cancel reservation'));
+        setSuccessMessage(error.message || t('failedCancel'));
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     }
   }
 
   async function handleNoShow(reservation: Reservation) {
-    const confirmMsg = isRtl ? `تعليم الحجز رقم ${reservation.reservation_number} كعدم حضور؟` : `Mark reservation ${reservation.reservation_number} as no-show?`;
+    const confirmMsg = t('noShowConfirm').replace('{number}', reservation.reservation_number);
     if (!confirm(confirmMsg)) return;
 
     try {
       await reservationsApi.markNoShow(reservation.id);
-      setSuccessMessage(isRtl ? 'تم تحديد الحجز كعدم حضور بنجاح!' : 'Reservation marked as no-show successfully!');
+      setSuccessMessage(t('successNoShow'));
       await fetchReservations();
       setActionMenu(null);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSuccessMessage(error.message || (isRtl ? 'فشل تغيير حالة الحجز إلى عدم حضور' : 'Failed to mark reservation as no-show'));
+        setSuccessMessage(error.message || t('failedNoShow'));
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     }
@@ -177,22 +176,22 @@ export default function ReservationsPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'confirmed': return isRtl ? 'مؤكد' : 'Confirmed';
-      case 'pending': return isRtl ? 'قيد الانتظار' : 'Pending';
-      case 'checked_in': return isRtl ? 'مسجل وصوله' : 'Checked In';
-      case 'checked_out': return isRtl ? 'مسجل مغادرته' : 'Checked Out';
-      case 'cancelled': return isRtl ? 'ملغى' : 'Cancelled';
-      case 'no_show': return isRtl ? 'لم يحضر' : 'No Show';
+      case 'confirmed': return t('statusConfirmed');
+      case 'pending': return t('statusPending');
+      case 'checked_in': return t('statusCheckedIn');
+      case 'checked_out': return t('statusCheckedOut');
+      case 'cancelled': return t('statusCancelled');
+      case 'no_show': return t('statusNoShow');
       default: return status;
     }
   };
 
   const getPaymentStatusLabel = (status: string) => {
     switch (status) {
-      case 'paid': return isRtl ? 'مدفوع' : 'Paid';
-      case 'partially_paid': return isRtl ? 'مدفوع جزئياً' : 'Partially Paid';
-      case 'unpaid': return isRtl ? 'غير مدفوع' : 'Unpaid';
-      case 'refunded': return isRtl ? 'مسترجع' : 'Refunded';
+      case 'paid': return t('paymentStatusPaid');
+      case 'partially_paid': return t('paymentStatusPartiallyPaid');
+      case 'unpaid': return t('paymentStatusUnpaid');
+      case 'refunded': return t('paymentStatusRefunded');
       default: return status;
     }
   };
@@ -399,7 +398,7 @@ export default function ReservationsPage() {
             {t('noReservations')}
           </h3>
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: '20px' }}>
-            {isRtl ? 'لم نجد أي حجوزات متطابقة مع شروط البحث' : 'No reservations matched your criteria'}
+            {t('noResults')}
           </p>
         </div>
       ) : (
@@ -414,13 +413,13 @@ export default function ReservationsPage() {
             <thead>
               <tr style={{ background: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
                 <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', textAlign: isRtl ? 'right' : 'left' }}>
-                  {isRtl ? 'رقم الحجز' : 'Res #'}
+                  {t('reservationNumber')}
                 </th>
                 <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', textAlign: isRtl ? 'right' : 'left' }}>
                   {tCommon('guest')}
                 </th>
                 <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', textAlign: isRtl ? 'right' : 'left' }}>
-                  {isRtl ? 'الوصول / المغادرة' : 'Dates'}
+                  {t('dates')}
                 </th>
                 <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', textAlign: isRtl ? 'right' : 'left' }}>
                   {tCommon('room')}
@@ -429,7 +428,7 @@ export default function ReservationsPage() {
                   {tCommon('status')}
                 </th>
                 <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', textAlign: isRtl ? 'right' : 'left' }}>
-                  {isRtl ? 'حالة الدفع' : 'Payment'}
+                  {t('payment')}
                 </th>
                 <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', textAlign: isRtl ? 'right' : 'left' }}>
                   {tCommon('total')}
@@ -455,7 +454,7 @@ export default function ReservationsPage() {
                     <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>← {res.check_out_date}</div>
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                    {res.room ? `${isRtl ? 'غرفة' : 'Room'} ${res.room.room_number}` : (isRtl ? 'غير محددة' : 'Unassigned')}
+                    {res.room ? `${t('room')} ${res.room.room_number}` : t('unassigned')}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{
@@ -482,7 +481,7 @@ export default function ReservationsPage() {
                     </span>
                   </td>
                   <td style={{ padding: '14px 16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
-                    {isRtl ? `${res.total_amount.toFixed(2)} $` : `$${res.total_amount.toFixed(2)}`}
+                    {isRtl ? `${(Number(res.total_amount) || 0).toFixed(2)} $` : `$${(Number(res.total_amount) || 0).toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: isRtl ? 'left' : 'right' }}>
                     <button
