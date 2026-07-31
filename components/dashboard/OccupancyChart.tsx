@@ -8,10 +8,14 @@ interface OccupancyChartProps {
 }
 
 export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
-  const maxRate = Math.max(...data.map(d => d.rate), 100);
-  const avgRate = data.length > 0
-    ? Math.round(data.reduce((s, d) => s + d.rate, 0) / data.length)
+  const maxRevenue = Math.max(...data.map(d => d.revenue), 100);
+  const totalRevenue = data.length > 0
+    ? data.reduce((s, d) => s + d.revenue, 0)
     : 0;
+
+  const formatCurrency = (value: number) => {
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   return (
     <div style={{
@@ -35,7 +39,7 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
             color: 'var(--color-text-primary)',
             letterSpacing: '-0.2px',
             marginBottom: '4px',
-          }}>Occupancy Rate</h2>
+          }}>Revenue Trend</h2>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Last 7 days</p>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -46,10 +50,10 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
             letterSpacing: '-0.6px',
             lineHeight: 1,
           }}>
-            {loading ? '—' : `${avgRate}%`}
+            {loading ? '—' : formatCurrency(totalRevenue)}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--color-success)', marginTop: '4px', fontWeight: '500' }}>
-            7-day average
+            7-day total
           </div>
         </div>
       </div>
@@ -71,10 +75,9 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
             height: '140px',
           }}>
             {data.map((point, i) => {
-              const pct = (point.rate / maxRate) * 100;
-              const isHigh = point.rate >= 85;
-              const color = isHigh ? '#10b981' : '#6366f1';
-              const bgColor = isHigh ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.12)';
+              const pct = maxRevenue > 0 ? (point.revenue / maxRevenue) * 100 : 0;
+              const color = '#10b981';
+              const bgColor = 'rgba(16,185,129,0.12)';
 
               return (
                 <div
@@ -88,7 +91,7 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
                     height: '100%',
                     justifyContent: 'flex-end',
                   }}
-                  title={`${point.date}: ${point.rate}%`}
+                  title={`${point.date}: $${point.revenue}`}
                 >
                   {/* Value label on hover */}
                   <div style={{ position: 'relative', width: '100%', flex: 1, display: 'flex', alignItems: 'flex-end' }}>
@@ -132,7 +135,7 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
                         color,
                         opacity: pct > 30 ? 1 : 0,
                       }}>
-                        {point.rate}%
+                        ${point.revenue}
                       </span>
                     </div>
                   </div>
@@ -157,12 +160,8 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
             borderTop: '1px solid var(--color-border)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#6366f1' }} />
-              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Normal (&lt;85%)</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981' }} />
-              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>High (≥85%)</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Daily Revenue</span>
             </div>
           </div>
         </div>

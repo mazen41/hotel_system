@@ -43,7 +43,6 @@ export default function DashboardPage() {
   const getKpiLabel = (key: string, defaultLabel: string) => {
     switch (key) {
       case 'total_reservations': return t('totalReservations');
-      case 'occupancy_rate': return t('occupancyRate');
       case 'todays_checkins': return t('todaysCheckins');
       case 'todays_checkouts': return t('todaysCheckouts');
       case 'total_revenue': return t('totalRevenue');
@@ -51,22 +50,17 @@ export default function DashboardPage() {
     }
   };
 
-  const getPeriodLabel = (period: string) => {
-    if (period.includes('last month')) return t('vsLastMonth');
-    if (period.includes('yesterday')) return t('vsYesterday');
-    return period;
-  };
+
 
   const kpiData: KPI[] = (kpis.length > 0 ? kpis : [
-    { key: 'total_reservations', label: 'Total Reservations', value: 1284, change: '+12.5%', trend: 'up' as const, period: 'vs last month' },
-    { key: 'occupancy_rate',     label: 'Occupancy Rate',     value: '78.4%', change: '+3.2%', trend: 'up' as const, period: 'vs last month' },
-    { key: 'todays_checkins',    label: "Today's Check-ins",  value: 24, change: '-2', trend: 'down' as const, period: 'vs yesterday' },
-    { key: 'todays_checkouts',   label: "Today's Check-outs", value: 18, change: '+4', trend: 'up' as const, period: 'vs yesterday' },
-    { key: 'total_revenue',      label: 'Total Revenue',      value: '$284,750', change: '+8.1%', trend: 'up' as const, period: 'vs last month' },
+    { key: 'total_reservations', label: 'Total Reservations', value: 0, period: 'Today' },
+    { key: 'todays_checkins',    label: "Today's Check-ins",  value: 0, period: 'Today' },
+    { key: 'todays_checkouts',   label: "Today's Check-outs", value: 0, period: 'Today' },
+    { key: 'total_revenue',      label: 'Total Revenue',      value: 0, period: 'Today' },
   ]).map(item => ({
     ...item,
     label: getKpiLabel(item.key, item.label),
-    period: getPeriodLabel(item.period)
+    period: item.period
   }));
 
   const getActivityDesc = (desc: string) => {
@@ -117,13 +111,13 @@ export default function DashboardPage() {
   };
 
   const trendData: OccupancyDataPoint[] = (trend.length > 0 ? trend : [
-    { date: 'Mon', rate: 72 },
-    { date: 'Tue', rate: 68 },
-    { date: 'Wed', rate: 81 },
-    { date: 'Thu', rate: 75 },
-    { date: 'Fri', rate: 89 },
-    { date: 'Sat', rate: 94 },
-    { date: 'Sun', rate: 78 },
+    { date: 'Mon', revenue: 0 },
+    { date: 'Tue', revenue: 0 },
+    { date: 'Wed', revenue: 0 },
+    { date: 'Thu', revenue: 0 },
+    { date: 'Fri', revenue: 0 },
+    { date: 'Sat', revenue: 0 },
+    { date: 'Sun', revenue: 0 },
   ]).map(item => ({
     ...item,
     date: getTrendDay(item.date)

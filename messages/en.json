@@ -93,17 +93,14 @@
     "greeting": "Good {greeting}, {name} 👋",
     "subheading": "Here's what's happening at your property today.",
     "totalReservations": "Total Reservations",
-    "occupancyRate": "Occupancy Rate",
     "todaysCheckins": "Today's Check-ins",
     "todaysCheckouts": "Today's Check-outs",
     "totalRevenue": "Total Revenue",
-    "vsLastMonth": "vs last month",
-    "vsYesterday": "vs yesterday",
+    "paidRevenue": "Paid Revenue",
+    "unpaidBalance": "Unpaid Balance",
     "recentActivity": "Recent Activity",
     "last7Days": "Last 7 days",
-    "average": "7-day average",
-    "normal": "Normal (<85%)",
-    "high": "High (>=85%)"
+    "average": "7-day total"
   },
   "settings": {
     "title": "Hotel Settings",

@@ -48,9 +48,11 @@ export interface KPI {
   key: string;
   label: string;
   value: string | number;
-  change: string;
-  trend: 'up' | 'down' | 'neutral';
+  change?: string;
+  trend?: 'up' | 'down' | 'neutral';
   period: string;
+  paid_revenue?: number;
+  unpaid_balance?: number;
 }
 
 export interface ActivityItem {
@@ -64,7 +66,8 @@ export interface ActivityItem {
 
 export interface OccupancyDataPoint {
   date: string;
-  rate: number;
+  rate?: number;
+  revenue?: number;
 }
 
 // ─── Hotel Settings Types ─────────────────────────────────────────────────────

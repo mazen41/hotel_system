@@ -93,17 +93,14 @@
     "greeting": "طاب {greeting}، {name} 👋",
     "subheading": "إليك ما يحدث في فندقك اليوم.",
     "totalReservations": "إجمالي الحجوزات",
-    "occupancyRate": "نسبة الإشغال",
     "todaysCheckins": "تسجيل وصول اليوم",
     "todaysCheckouts": "تسجيل مغادرة اليوم",
     "totalRevenue": "إجمالي الإيرادات",
-    "vsLastMonth": "مقارنة بالشهر الماضي",
-    "vsYesterday": "مقارنة بالأمس",
+    "paidRevenue": "الإيرادات المدفوعة",
+    "unpaidBalance": "الرصيد غير المدفوع",
     "recentActivity": "النشاطات الأخيرة",
     "last7Days": "آخر 7 أيام",
-    "average": "متوسط 7 أيام",
-    "normal": "طبيعي (<85%)",
-    "high": "مرتفع (>=85%)"
+    "average": "إجمالي 7 أيام"
   },
   "settings": {
     "title": "إعدادات الفندق",
