@@ -91,9 +91,9 @@ export default function ServicesPage() {
     }
   };
 
-  const fetchReservations = async (guestId: string) => {
+  const fetchReservations = async (guest_id: string) => {
     try {
-      const response = await api('GET', `/reservations?guest_id=${guestId}`);
+      const response = await api('GET', `/reservations?guest_id=${guest_id}`);
       setReservations(response.data.filter((r: Reservation) => ['confirmed', 'checked_in'].includes(r.status)));
     } catch (error) {
       console.error('Error fetching reservations:', error);
@@ -141,10 +141,10 @@ export default function ServicesPage() {
     }
   };
 
-  const handleGuestChange = (guestId: string) => {
-    setFormData(prev => ({ ...prev, guest_id, reservation_id: '' }));
-    if (guestId) {
-      fetchReservations(guestId);
+  const handleGuestChange = (guest_id: string) => {
+    setFormData(prev => ({ ...prev, guest_id: guest_id, reservation_id: '' }));
+    if (guest_id) {
+      fetchReservations(guest_id);
     } else {
       setReservations([]);
     }
