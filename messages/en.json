@@ -35,7 +35,8 @@
     "yes": "Yes",
     "no": "No",
     "clearFilters": "Clear Filters",
-    "guest": "Guest"
+    "guest": "Guest",
+    "view": "View"
   },
   "auth": {
     "welcome": "Welcome back",
