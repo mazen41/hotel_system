@@ -155,6 +155,7 @@ export default function RolesPage() {
     'Settings': ['manage settings'],
     'Users': ['manage users', 'manage roles'],
     'Reports': ['view reports'],
+    'Trips & Services': ['manage trips and services'],
   };
 
   const getPermissionLabel = (name: string) => {
@@ -174,6 +175,7 @@ export default function RolesPage() {
       case 'manage users': return locale === 'ar' ? 'إدارة المستخدمين' : 'manage users';
       case 'manage roles': return locale === 'ar' ? 'إدارة الأدوار' : 'manage roles';
       case 'view reports': return locale === 'ar' ? 'عرض التقارير' : 'view reports';
+      case 'manage trips and services': return locale === 'ar' ? 'إدارة الرحلات والخدمات' : 'manage trips and services';
       default: return name;
     }
   };
@@ -190,6 +192,7 @@ export default function RolesPage() {
       case 'Settings': return locale === 'ar' ? 'الإعدادات' : 'Settings';
       case 'Users': return locale === 'ar' ? 'المستخدمين' : 'Users';
       case 'Reports': return locale === 'ar' ? 'التقارير' : 'Reports';
+      case 'Trips & Services': return locale === 'ar' ? 'الرحلات والخدمات' : 'Trips & Services';
       default: return group;
     }
   };

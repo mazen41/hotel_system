@@ -15,6 +15,7 @@ interface NavItem {
   labelKey: string;
   href: string;
   icon: React.ReactNode;
+  permission?: string;
 }
 
 function LayoutIcon() {
@@ -194,6 +195,16 @@ function AuditLogsIcon() {
   );
 }
 
+function ServicesIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-2.7.6-2.5 1.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6 17H4c-.6 0-1-.4-1-1v-3c0-.9.7-1.7 1.5-1.9C5.3 10.6 8 10 8 10s2.7.6 2.5 1.1c.8.2 1.5 1 1.5 1.9v3c0 .6-.4 1-1 1H6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -207,21 +218,22 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard',    labelKey: 'dashboard',    href: '/dashboard',                      icon: <LayoutIcon /> },
-  { label: 'Guests',       labelKey: 'guests',       href: '/dashboard/guests',               icon: <GuestsIcon /> },
-  { label: 'Reservations', labelKey: 'reservations', href: '/dashboard/reservations',         icon: <ReservationsIcon /> },
-  { label: 'Calendar',     labelKey: 'calendar',     href: '/dashboard/reservations/calendar',icon: <CalendarIcon /> },
-  { label: 'Billing',      labelKey: 'billing',      href: '/dashboard/billing/folios',       icon: <BillingIcon /> },
-  { label: 'Reports',      labelKey: 'reports',      href: '/dashboard/reports',              icon: <ReportsIcon /> },
-  { label: 'Availability', labelKey: 'availability', href: '/dashboard/availability',         icon: <AvailabilityIcon /> },
-  { label: 'Room Map',     labelKey: 'roomMap',      href: '/dashboard/room-map',             icon: <RoomMapIcon /> },
-  { label: 'Housekeeping', labelKey: 'housekeeping', href: '/dashboard/housekeeping',         icon: <HousekeepingIcon /> },
-  { label: 'Rate Plans',   labelKey: 'ratePlans',    href: '/dashboard/rate-plans',           icon: <RatePlansIcon /> },
-  { label: 'Room Types',   labelKey: 'roomTypes',    href: '/dashboard/room-types',           icon: <RoomTypesIcon /> },
-  { label: 'Rooms',        labelKey: 'rooms',        href: '/dashboard/rooms',                icon: <RoomsIcon /> },
-  { label: 'Users',        labelKey: 'users',        href: '/dashboard/users',                icon: <UsersIcon /> },
-  { label: 'Audit Logs',   labelKey: 'auditLogs',    href: '/dashboard/audit-logs',           icon: <AuditLogsIcon /> },
-  { label: 'Settings',     labelKey: 'settings',     href: '/dashboard/settings',             icon: <SettingsIcon /> },
+  { label: 'Dashboard',    labelKey: 'dashboard',    href: '/dashboard',                      icon: <LayoutIcon />, permission: 'view dashboard' },
+  { label: 'Guests',       labelKey: 'guests',       href: '/dashboard/guests',               icon: <GuestsIcon />, permission: 'manage guests' },
+  { label: 'Reservations', labelKey: 'reservations', href: '/dashboard/reservations',         icon: <ReservationsIcon />, permission: 'manage reservations' },
+  { label: 'Calendar',     labelKey: 'calendar',     href: '/dashboard/reservations/calendar',icon: <CalendarIcon />, permission: 'manage reservations' },
+  { label: 'Trips & Services', labelKey: 'services', href: '/dashboard/services',           icon: <ServicesIcon />, permission: 'manage trips and services' },
+  { label: 'Billing',      labelKey: 'billing',      href: '/dashboard/billing/folios',       icon: <BillingIcon />, permission: 'manage billing' },
+  { label: 'Reports',      labelKey: 'reports',      href: '/dashboard/reports',              icon: <ReportsIcon />, permission: 'view reports' },
+  { label: 'Availability', labelKey: 'availability', href: '/dashboard/availability',         icon: <AvailabilityIcon />, permission: 'manage reservations' },
+  { label: 'Room Map',     labelKey: 'roomMap',      href: '/dashboard/room-map',             icon: <RoomMapIcon />, permission: 'manage rooms' },
+  { label: 'Housekeeping', labelKey: 'housekeeping', href: '/dashboard/housekeeping',         icon: <HousekeepingIcon />, permission: 'manage housekeeping' },
+  { label: 'Rate Plans',   labelKey: 'ratePlans',    href: '/dashboard/rate-plans',           icon: <RatePlansIcon />, permission: 'manage rate plans' },
+  { label: 'Room Types',   labelKey: 'roomTypes',    href: '/dashboard/room-types',           icon: <RoomTypesIcon />, permission: 'manage room types' },
+  { label: 'Rooms',        labelKey: 'rooms',        href: '/dashboard/rooms',                icon: <RoomsIcon />, permission: 'manage rooms' },
+  { label: 'Users',        labelKey: 'users',        href: '/dashboard/users',                icon: <UsersIcon />, permission: 'manage users' },
+  { label: 'Audit Logs',   labelKey: 'auditLogs',    href: '/dashboard/audit-logs',           icon: <AuditLogsIcon />, permission: 'manage users' },
+  { label: 'Settings',     labelKey: 'settings',     href: '/dashboard/settings',             icon: <SettingsIcon />, permission: 'manage settings' },
 ];
 
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
@@ -238,6 +250,17 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   };
 
   const width = collapsed ? '64px' : '240px';
+
+  // Filter nav items based on user permissions
+  const filteredNavItems = NAV_ITEMS.filter(item => {
+    if (!item.permission) return true; // No permission required
+    // Check if user has the permission (assuming user.permissions is an array)
+    if (user?.permissions && Array.isArray(user.permissions)) {
+      return user.permissions.includes(item.permission);
+    }
+    // If no permissions data, show all items (fallback)
+    return true;
+  });
 
   return (
     <aside style={{
@@ -361,11 +384,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           {collapsed ? '•' : t('main')}
         </div>
 
-        {NAV_ITEMS.map(item => {
-          if (item.label === 'Users' && user?.role !== 'Admin') {
-            return null;
-          }
-
+        {filteredNavItems.map(item => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link

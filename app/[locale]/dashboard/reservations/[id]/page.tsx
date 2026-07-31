@@ -23,6 +23,7 @@ export default function ReservationDetailPage() {
   const [folios, setFolios] = useState<Folio[]>([]);
   const [charges, setCharges] = useState<Charge[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [billingLoading, setBillingLoading] = useState(false);
   
   // Charge modal
@@ -206,6 +207,15 @@ export default function ReservationDetailPage() {
         per_page: 50
       });
       setPayments(paymentsResponse.data);
+
+      // Fetch services
+      const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://hotel-sys.loop-pr.com/api';
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const servicesResponse = await fetch(`${API}/services?reservation_id=${reservation.id}`, {
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const servicesData = await servicesResponse.json();
+      setServices(servicesData.data || []);
     } catch (error) {
       console.error('Error fetching billing data:', error);
     } finally {
@@ -454,6 +464,143 @@ export default function ReservationDetailPage() {
                 {reservation.room ? `${isRtl ? 'غرفة' : 'Room'} ${reservation.room.room_number}` : (isRtl ? 'غير محددة' : 'Unassigned')}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'payments' && (
+        <div style={{ display: 'grid', gap: '20px' }}>
+          {/* Trips & Services */}
+          <div style={{
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '12px',
+            padding: '24px',
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
+              {isRtl ? 'الرحلات والخدمات' : 'Trips & Services'}
+            </h3>
+            {services.length === 0 ? (
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>
+                {isRtl ? 'لا توجد رحلات أو خدمات' : 'No trips or services'}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {services.map((service) => (
+                  <div key={service.id} style={{
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    padding: '16px',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          background: service.type === 'trip' ? 'rgba(99,102,241,0.1)' : 'rgba(16,185,129,0.1)',
+                          color: service.type === 'trip' ? '#6366f1' : '#10b981',
+                          marginRight: isRtl ? '0' : '8px',
+                          marginLeft: isRtl ? '8px' : '0',
+                        }}>
+                          {service.type === 'trip' ? (isRtl ? 'رحلة' : 'Trip') : (isRtl ? 'خدمة' : 'Service')}
+                        </span>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                          {service.name || (isRtl ? 'بدون اسم' : 'No name')}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-primary)' }}>
+                        ${service.fees.toFixed(2)}
+                      </div>
+                    </div>
+                    {service.description && (
+                      <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                        {service.description}
+                      </div>
+                    )}
+                    {service.invoice_image && (
+                      <div>
+                        <a
+                          href={service.invoice_image}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '13px',
+                            color: '#6366f1',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          📄 {isRtl ? 'عرض الفاتورة' : 'View Invoice'}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Folios */}
+          <div style={{
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '12px',
+            padding: '24px',
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: 'var(--color-text-primary)' }}>
+              {isRtl ? 'دفاتير الحساب' : 'Folios'}
+            </h3>
+            {folios.length === 0 ? (
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>
+                {isRtl ? 'لا توجد دفاتير حساب' : 'No folios'}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {folios.map((folio) => (
+                  <div key={folio.id} style={{
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    padding: '16px',
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                      {folio.folio_number}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', fontSize: '13px' }}>
+                      <div>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'الحالة' : 'Status'}:</span>
+                        <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
+                          {folio.status}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'الإجمالي' : 'Total'}:</span>
+                        <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
+                          ${folio.total_amount?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'المدفوع' : 'Paid'}:</span>
+                        <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
+                          ${folio.paid_amount?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'الرصيد' : 'Balance'}:</span>
+                        <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
+                          ${folio.balance_due?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
