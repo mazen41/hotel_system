@@ -8,9 +8,9 @@ interface OccupancyChartProps {
 }
 
 export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
-  const maxRevenue = Math.max(...data.map(d => d.revenue), 100);
+  const maxRevenue = Math.max(...data.map(d => d.revenue ?? 0), 100);
   const totalRevenue = data.length > 0
-    ? data.reduce((s, d) => s + d.revenue, 0)
+    ? data.reduce((s, d) => s + (d.revenue ?? 0), 0)
     : 0;
 
   const formatCurrency = (value: number) => {
@@ -75,7 +75,7 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
             height: '140px',
           }}>
             {data.map((point, i) => {
-              const pct = maxRevenue > 0 ? (point.revenue / maxRevenue) * 100 : 0;
+              const pct = maxRevenue > 0 ? ((point.revenue ?? 0) / maxRevenue) * 100 : 0;
               const color = '#10b981';
               const bgColor = 'rgba(16,185,129,0.12)';
 
@@ -91,7 +91,7 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
                     height: '100%',
                     justifyContent: 'flex-end',
                   }}
-                  title={`${point.date}: $${point.revenue}`}
+                  title={`${point.date}: $${point.revenue ?? 0}`}
                 >
                   {/* Value label on hover */}
                   <div style={{ position: 'relative', width: '100%', flex: 1, display: 'flex', alignItems: 'flex-end' }}>
@@ -135,7 +135,7 @@ export default function OccupancyChart({ data, loading }: OccupancyChartProps) {
                         color,
                         opacity: pct > 30 ? 1 : 0,
                       }}>
-                        ${point.revenue}
+                        ${point.revenue ?? 0}
                       </span>
                     </div>
                   </div>

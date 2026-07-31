@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role?: string;
   roles?: Array<{ name: string }>;
+  permissions?: string[];
   is_active?: boolean;
   created_at: string;
 }
@@ -66,7 +67,6 @@ export interface ActivityItem {
 
 export interface OccupancyDataPoint {
   date: string;
-  rate?: number;
   revenue?: number;
 }
 
