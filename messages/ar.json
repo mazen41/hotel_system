@@ -34,7 +34,8 @@
     "vip": "VIP",
     "yes": "نعم",
     "no": "لا",
-    "clearFilters": "مسح الفلاتر"
+    "clearFilters": "مسح الفلاتر",
+    "guest": "نزيل"
   },
   "auth": {
     "welcome": "مرحباً بك مجدداً",
@@ -81,7 +82,8 @@
     "markAllRead": "تحديد الكل كمقروء",
     "noNotifications": "لا توجد إشعارات",
     "live": "مباشر",
-    "admin": "مسؤول النظام"
+    "admin": "مسؤول النظام",
+    "hotelOS": "فندق أو إس"
   },
   "dashboard": {
     "morning": "الصباح",
@@ -303,7 +305,10 @@
     "newReservation": "+ حجز جديد",
     "searchPlaceholder": "البحث برقم الحجز، اسم النزيل، الهاتف، الغرفة...",
     "allStatus": "جميع الحالات",
+    "allStatuses": "جميع الحالات",
     "allPaymentStatus": "جميع حالات الدفع",
+    "allPaymentStatuses": "جميع حالات الدفع",
+    "checkAvailability": "فحص التوفر",
     "nights": "الليالي",
     "total": "الإجمالي",
     "noReservations": "لم يتم العثور على حجوزات",

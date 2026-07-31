@@ -34,7 +34,8 @@
     "vip": "VIP",
     "yes": "Yes",
     "no": "No",
-    "clearFilters": "Clear Filters"
+    "clearFilters": "Clear Filters",
+    "guest": "Guest"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -81,7 +82,8 @@
     "markAllRead": "Mark all read",
     "noNotifications": "No notifications",
     "live": "Live",
-    "admin": "Administrator"
+    "admin": "Administrator",
+    "hotelOS": "HotelOS"
   },
   "dashboard": {
     "morning": "morning",
@@ -303,7 +305,10 @@
     "newReservation": "+ New Reservation",
     "searchPlaceholder": "Search reservations by number, guest name, phone, room...",
     "allStatus": "All Status",
+    "allStatuses": "All Statuses",
     "allPaymentStatus": "All Payment Status",
+    "allPaymentStatuses": "All Payment Statuses",
+    "checkAvailability": "Check Availability",
     "nights": "Nights",
     "total": "Total",
     "noReservations": "No reservations found",
