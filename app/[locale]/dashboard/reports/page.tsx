@@ -11,7 +11,6 @@ import { ApiError } from '@/lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ReportType =
-  | 'occupancy'
   | 'revenue'
   | 'adr'
   | 'revpar'
@@ -35,12 +34,11 @@ interface ReportConfig {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://hotel-sys.loop-pr.com/api';
 
 const CONFIGS: Record<ReportType, ReportConfig> = {
-  occupancy:           { label:'Occupancy Rate',    labelAr:'نسبة الإشغال',        icon:'🏨', description:'Daily room occupancy rate over time',                     descriptionAr:'معدل إشغال الغرف اليومي والغرف المشغولة',         color:'#6366f1', chartType:'area'  },
   revenue:             { label:'Revenue',           labelAr:'الإيرادات',            icon:'💰', description:'Daily revenue from completed payments',                   descriptionAr:'الإيرادات اليومية من المدفوعات المكتملة',          color:'#10b981', chartType:'area'  },
   adr:                 { label:'ADR',               labelAr:'متوسط السعر اليومي',   icon:'📊', description:'Average Daily Rate per room sold',                        descriptionAr:'متوسط السعر اليومي لكل غرفة مباعة',               color:'#f59e0b', chartType:'kpi'   },
   revpar:              { label:'RevPAR',            labelAr:'إيراد الغرفة المتاحة', icon:'📈', description:'Revenue Per Available Room — efficiency metric',           descriptionAr:'الإيراد لكل غرفة متاحة — مقياس الكفاءة',         color:'#8b5cf6', chartType:'kpi'   },
   arrivals:            { label:'Arrivals',          labelAr:'الوصول',               icon:'✈️', description:'Guest check-ins with room and payment details',           descriptionAr:'تسجيلات وصول النزلاء مع تفاصيل الغرف والدفع',    color:'#3b82f6', chartType:'table' },
-  departures:          { label:'Departures',        labelAr:'المغادرة',              icon:'🚪', description:'Guest check-outs with stay duration and balance',         descriptionAr:'مغادرة النزلاء مع مدة الإقامة والرصيد',           color:'#ef4444', chartType:'table' },
+  departures:          { label:'Departures',        labelAr:'المغادرة',              icon:'🚪', description:'Guest check-outs with stay duration and balance',         descriptionAr:'مغادرة النزلاء مع مدة الإقامة والرصيد',           color:'#ef4444',chartType:'table' },
   guests:              { label:'Guest Report',      labelAr:'تقرير النزلاء',        icon:'👥', description:'Guest activity, VIP status, and visit frequency',         descriptionAr:'نشاط النزلاء وحالة VIP وتكرار الزيارات',          color:'#06b6d4', chartType:'table' },
   housekeeping:        { label:'Housekeeping',      labelAr:'الخدمة الفندقية',      icon:'🧹', description:'Task completion rates, priorities, and staff assignments', descriptionAr:'معدلات الإنجاز والأولويات وتكليفات الموظفين',     color:'#84cc16', chartType:'bar'   },
   'financial-summary': { label:'Financial Summary', labelAr:'الملخص المالي',        icon:'🧾', description:'Revenue, charges, refunds, and net income',               descriptionAr:'الإيرادات والرسوم والمبالغ المستردة وصافي الدخل', color:'#f97316', chartType:'kpi'   },
@@ -67,7 +65,7 @@ function fmt(n: number, type: 'currency'|'percent'|'number' = 'number'): string 
   if (type === 'percent')  return `${n.toFixed(1)}%`;
   return n.toLocaleString('en-US', { maximumFractionDigits:2 });
 }
-const isCurrency = (k: string) => /revenue|amount|adr|revpar|price|total|payment|charge|net/i.test(k);
+const isCurrency = (k: string) => /revenue|amount|adr|revpar|price|total|payment|charge|net|income/i.test(k);
 const isPercent  = (k: string) => /rate|percent|pct/i.test(k);
 
 function formatCellVal(col: string, val: string): string {
@@ -213,26 +211,6 @@ function DataTable({ rows, isRtl }: { rows: Record<string,unknown>[]; isRtl: boo
   );
 }
 
-function OccupancyChart({ data, color }: { data: Record<string,unknown>[]; color: string }) {
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={data} margin={{ top:4, right:8, left:0, bottom:0 }}>
-        <defs>
-          <linearGradient id="occ-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={color} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={color} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-        <XAxis dataKey="date" tick={{ fontSize:11, fill:'var(--color-text-muted)' }} />
-        <YAxis tick={{ fontSize:11, fill:'var(--color-text-muted)' }} unit="%" domain={[0,100]} />
-        <Tooltip contentStyle={{ background:'var(--color-surface)', border:'1px solid var(--color-border)', borderRadius:'8px', fontSize:'12px' }} formatter={(v: unknown) => [`${Number(v).toFixed(1)}%`, 'Occupancy']} />
-        <Area type="monotone" dataKey="occupancy_rate" stroke={color} strokeWidth={2} fill="url(#occ-grad)" name="Occupancy %" />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-}
-
 function RevenueChart({ data, color }: { data: Record<string,unknown>[]; color: string }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -299,7 +277,7 @@ export default function ReportsPage() {
   const locale = useLocale();
   const isRtl  = locale === 'ar';
 
-  const [activeReport, setActiveReport] = useState<ReportType>('occupancy');
+  const [activeReport, setActiveReport] = useState<ReportType>('revenue');
   const [startDate, setStartDate] = useState(() => format(subDays(new Date(), 29), 'yyyy-MM-dd'));
   const [endDate,   setEndDate]   = useState(() => format(new Date(), 'yyyy-MM-dd'));
 
@@ -481,11 +459,6 @@ export default function ReportsPage() {
 
               {/* KPI panel — adr, revpar, financial-summary return a single data object */}
               {kpiData && <KpiPanel data={kpiData} />}
-
-              {/* Occupancy area chart */}
-              {activeReport === 'occupancy' && listData.length > 0 && (
-                <OccupancyChart data={listData} color={cfg.color} />
-              )}
 
               {/* Revenue area chart */}
               {activeReport === 'revenue' && listData.length > 0 && (
