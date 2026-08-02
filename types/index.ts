@@ -286,6 +286,23 @@ export interface Availability {
   updated_at: string;
 }
 
+export interface Service {
+  id: number;
+  type: 'trip' | 'service';
+  guest_id: number;
+  reservation_id: number;
+  name: string | null;
+  description: string | null;
+  fees: number;
+  invoice_image: string | null;
+  invoice_image_url: string | null;
+  created_by: number | null;
+  guest: Guest;
+  reservation: Reservation;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AvailabilityBlock {
   id: number;
   name: string;

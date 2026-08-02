@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/lib/api';
 import { useLocale, useTranslations } from 'next-intl';
+import type { Service, Guest, Reservation } from '@/types';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://hotel-sys.loop-pr.com/api';
 function getToken() { return typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null; }
@@ -16,30 +17,6 @@ async function api(method: string, path: string, body?: any) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(data.message ?? 'Request failed', res.status, data.errors);
   return data;
-}
-
-interface Guest {
-  id: number;
-  first_name: string;
-  last_name: string;
-}
-
-interface Reservation {
-  id: number;
-  reservation_number: string;
-  status: string;
-}
-
-interface Service {
-  id: number;
-  type: 'trip' | 'service';
-  name: string | null;
-  description: string | null;
-  fees: number;
-  invoice_image: string | null;
-  guest: Guest;
-  reservation: Reservation;
-  created_at: string;
 }
 
 export default function ServicesPage() {
@@ -302,6 +279,26 @@ export default function ServicesPage() {
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '14px', color: 'var(--color-text-primary)' }}>
                     ${(Number(service.fees) || 0).toFixed(2)}
+                  </td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                    {service.invoice_image_url ? (
+                      <a
+                        href={service.invoice_image_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#6366f1',
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        📄 {locale === 'ar' ? 'عرض' : 'View'}
+                      </a>
+                    ) : (
+                      <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+                    )}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <button

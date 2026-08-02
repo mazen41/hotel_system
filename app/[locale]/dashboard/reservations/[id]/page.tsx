@@ -520,10 +520,10 @@ export default function ReservationDetailPage() {
                         {service.description}
                       </div>
                     )}
-                    {service.invoice_image && (
+                    {service.invoice_image_url && (
                       <div>
                         <a
-                          href={service.invoice_image}
+                          href={service.invoice_image_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
