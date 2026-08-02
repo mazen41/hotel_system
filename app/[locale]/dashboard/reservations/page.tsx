@@ -5,6 +5,7 @@ import { reservationsApi, ApiError } from '@/lib/api';
 import type { Reservation } from '@/types';
 import ReservationModal from '@/components/reservations/ReservationModal';
 import AvailabilityPanel from '@/components/reservations/AvailabilityPanel';
+import ReceiptModal from '@/components/reservations/ReceiptModal';
 import { useLocale, useTranslations } from 'next-intl';
 
 export default function ReservationsPage() {
@@ -15,6 +16,7 @@ export default function ReservationsPage() {
   const [showAvailabilityPanel, setShowAvailabilityPanel] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionMenu, setActionMenu] = useState<number | null>(null);
+  const [printReservation, setPrintReservation] = useState<Reservation | null>(null);
   
   // Filters
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -484,20 +486,42 @@ export default function ReservationsPage() {
                     {isRtl ? `${(Number(res.total_amount) || 0).toFixed(2)} $` : `$${(Number(res.total_amount) || 0).toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: isRtl ? 'left' : 'right' }}>
-                    <button
-                      onClick={() => window.location.href = `/${locale}/dashboard/reservations/${res.id}`}
-                      style={{
-                        padding: '6px 12px',
-                        background: 'transparent',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '6px',
-                        color: 'var(--color-text-primary)',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {tCommon('view')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', justifyContent: isRtl ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => window.location.href = `/${locale}/dashboard/reservations/${res.id}`}
+                        style={{
+                          padding: '6px 12px',
+                          background: 'transparent',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '6px',
+                          color: 'var(--color-text-primary)',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {tCommon('view')}
+                      </button>
+                      {res.status === 'checked_out' && (
+                        <button
+                          onClick={() => setPrintReservation(res)}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#4f46e5',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: '#fff',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          🧾 {isRtl ? 'الإيصال' : 'Receipt'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -524,6 +548,14 @@ export default function ReservationsPage() {
         <AvailabilityPanel
           onClose={() => setShowAvailabilityPanel(false)}
           onSelectRoom={() => setShowAvailabilityPanel(false)}
+        />
+      )}
+
+      {/* Receipt Modal – only for checked-out reservations */}
+      {printReservation && (
+        <ReceiptModal
+          reservation={printReservation}
+          onClose={() => setPrintReservation(null)}
         />
       )}
     </div>

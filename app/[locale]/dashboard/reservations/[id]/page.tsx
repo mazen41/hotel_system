@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { reservationsApi, billingApi, ApiError } from '@/lib/api';
 import type { Reservation, Folio, Charge, Payment } from '@/types';
 import { useLocale, useTranslations } from 'next-intl';
+import ReceiptModal from '@/components/reservations/ReceiptModal';
 
 export default function ReservationDetailPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function ReservationDetailPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
   
   // Charge modal
   const [showChargeModal, setShowChargeModal] = useState(false);
@@ -240,6 +242,7 @@ export default function ReservationDetailPage() {
   }
 
   return (
+    <>
     <div style={{ direction: isRtl ? 'rtl' : 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
       {/* Page header */}
       <div style={{ marginBottom: '24px' }}>
@@ -324,6 +327,26 @@ export default function ReservationDetailPage() {
             }}
           >
             {isRtl ? 'تسجيل المغادرة' : 'Check Out'}
+          </button>
+        )}
+        {reservation.status === 'checked_out' && (
+          <button
+            onClick={() => setShowReceipt(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              background: '#4f46e5',
+              color: 'white',
+              cursor: 'pointer',
+            }}
+          >
+            🧾 {isRtl ? 'طباعة الإيصال' : 'Print Receipt'}
           </button>
         )}
         {(reservation.status === 'confirmed' || reservation.status === 'pending') && (
@@ -605,5 +628,14 @@ export default function ReservationDetailPage() {
         </div>
       )}
     </div>
+
+      {/* Receipt Modal – only when checked out */}
+      {showReceipt && reservation && (
+        <ReceiptModal
+          reservation={reservation}
+          onClose={() => setShowReceipt(false)}
+        />
+      )}
+    </>
   );
 }
