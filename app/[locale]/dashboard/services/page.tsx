@@ -301,7 +301,7 @@ export default function ServicesPage() {
                     {service.reservation.reservation_number}
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '14px', color: 'var(--color-text-primary)' }}>
-                    ${service.fees.toFixed(2)}
+                    ${(Number(service.fees) || 0).toFixed(2)}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <button

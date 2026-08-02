@@ -106,8 +106,8 @@ export default function ReservationDetailPage() {
         if (error.status === 409 && (error as any).balance_due) {
           const balanceDue = (error as any).balance_due;
           const message = isRtl 
-            ? `لا يمكن إتمام المغادرة. هناك رصيد مستحق: ${balanceDue.toFixed(2)}`
-            : `Cannot check out with outstanding balance: ${balanceDue.toFixed(2)}`;
+            ? `لا يمكن إتمام المغادرة. هناك رصيد مستحق: ${(Number(balanceDue) || 0).toFixed(2)}`
+            : `Cannot check out with outstanding balance: ${(Number(balanceDue) || 0).toFixed(2)}`;
           setSuccessMessage(message);
         } else {
           setSuccessMessage(error.message || (isRtl ? 'فشل تسجيل مغادرة النزيل' : 'Failed to check out guest'));
@@ -512,7 +512,7 @@ export default function ReservationDetailPage() {
                         </span>
                       </div>
                       <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-primary)' }}>
-                        ${service.fees.toFixed(2)}
+                        ${(Number(service.fees) || 0).toFixed(2)}
                       </div>
                     </div>
                     {service.description && (
@@ -581,19 +581,19 @@ export default function ReservationDetailPage() {
                       <div>
                         <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'الإجمالي' : 'Total'}:</span>
                         <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
-                          ${folio.total_amount?.toFixed(2) || '0.00'}
+                          ${folio.total_amount ? (Number(folio.total_amount) || 0).toFixed(2) : '0.00'}
                         </span>
                       </div>
                       <div>
                         <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'المدفوع' : 'Paid'}:</span>
                         <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
-                          ${folio.paid_amount?.toFixed(2) || '0.00'}
+                          ${folio.paid_amount ? (Number(folio.paid_amount) || 0).toFixed(2) : '0.00'}
                         </span>
                       </div>
                       <div>
                         <span style={{ color: 'var(--color-text-secondary)' }}>{isRtl ? 'الرصيد' : 'Balance'}:</span>
                         <span style={{ color: 'var(--color-text-primary)', marginLeft: isRtl ? '0' : '8px', marginRight: isRtl ? '8px' : '0' }}>
-                          ${folio.balance_due?.toFixed(2) || '0.00'}
+                          ${folio.balance_due ? (Number(folio.balance_due) || 0).toFixed(2) : '0.00'}
                         </span>
                       </div>
                     </div>

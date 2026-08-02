@@ -342,7 +342,7 @@ export default function FoliosPage() {
                     {folio.guest ? `${folio.guest.first_name} ${folio.guest.last_name}` : '-'}
                   </td>
                   <td style={{ padding: '14px 16px', fontWeight: '600', color: folio.balance_due > 0 ? '#ef4444' : '#22c55e' }}>
-                    {isRtl ? `${folio.balance_due.toFixed(2)} $` : `$${folio.balance_due.toFixed(2)}`}
+                    {isRtl ? `${(Number(folio.balance_due) || 0).toFixed(2)} $` : `$${(Number(folio.balance_due) || 0).toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{

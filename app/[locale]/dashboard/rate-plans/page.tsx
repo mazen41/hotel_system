@@ -463,7 +463,7 @@ export default function RatePlansPage() {
                     </span>
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '14px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                    {locale === 'ar' ? `${ratePlan.base_rate.toFixed(2)} $` : `$${ratePlan.base_rate.toFixed(2)}`}
+                    {locale === 'ar' ? `${(Number(ratePlan.base_rate) || 0).toFixed(2)} $` : `$${(Number(ratePlan.base_rate) || 0).toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     {ratePlan.meal_plan_included && ratePlan.meal_plan_type ? (

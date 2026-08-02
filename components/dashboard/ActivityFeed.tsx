@@ -96,7 +96,7 @@ export default function ActivityFeed({ items, loading }: ActivityFeedProps) {
             const config = TYPE_CONFIG[item.type];
             return (
               <div
-                key={item.id}
+                key={`${item.id}-${idx}`}
                 style={{
                   display: 'flex',
                   gap: '12px',

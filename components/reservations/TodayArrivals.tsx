@@ -141,7 +141,7 @@ export default function TodayArrivals({ limit = 10, showHeader = true }: TodayAr
                 {reservation.adults} adult{reservation.adults !== 1 ? 's' : ''}, {reservation.children} child{reservation.children !== 1 ? 'ren' : ''}
               </div>
               <div style={{ fontSize: '14px', fontWeight: '600', color: '#6366f1' }}>
-                ${reservation.total_amount.toFixed(2)}
+                ${(Number(reservation.total_amount) || 0).toFixed(2)}
               </div>
             </div>
 

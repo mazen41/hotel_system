@@ -62,7 +62,7 @@ const STATUS_COLORS: Record<string, string> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number, type: 'currency'|'percent'|'number' = 'number'): string {
   if (type === 'currency') return `$${n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
-  if (type === 'percent')  return `${n.toFixed(1)}%`;
+  if (type === 'percent')  return `${(Number(n) || 0).toFixed(1)}%`;
   return n.toLocaleString('en-US', { maximumFractionDigits:2 });
 }
 const isCurrency = (k: string) => /revenue|amount|adr|revpar|price|total|payment|charge|net|income/i.test(k);

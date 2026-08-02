@@ -408,7 +408,7 @@ export default function RatePlanDetailPage() {
             <div style={{ marginBottom: '12px' }}>
               <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{t('baseRate')}</div>
               <div style={{ fontSize: '18px', color: '#6366f1', fontWeight: '700' }}>
-                {isRtl ? `${ratePlan.base_rate.toFixed(2)} $` : `$${ratePlan.base_rate.toFixed(2)}`}
+                {isRtl ? `${(Number(ratePlan.base_rate) || 0).toFixed(2)} $` : `$${(Number(ratePlan.base_rate) || 0).toFixed(2)}`}
               </div>
             </div>
             <div style={{ marginBottom: '12px' }}>
@@ -427,7 +427,7 @@ export default function RatePlanDetailPage() {
               <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{locale === 'ar' ? 'سعر السرير الإضافي' : 'Extra Bed Price'}</div>
               <div style={{ fontSize: '14px', color: 'var(--color-text-primary)' }}>
                 {ratePlan.extra_bed_price 
-                  ? (isRtl ? `${ratePlan.extra_bed_price.toFixed(2)} $` : `$${ratePlan.extra_bed_price.toFixed(2)}`) 
+                  ? (isRtl ? `${(Number(ratePlan.extra_bed_price) || 0).toFixed(2)} $` : `$${(Number(ratePlan.extra_bed_price) || 0).toFixed(2)}`) 
                   : (locale === 'ar' ? 'غير مسموح' : 'Not allowed')}
               </div>
             </div>
@@ -452,7 +452,7 @@ export default function RatePlanDetailPage() {
                     </div>
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: '600', color: '#6366f1' }}>
-                    {isRtl ? `${roomTypeRate.rate.toFixed(2)} $` : `$${roomTypeRate.rate.toFixed(2)}`}
+                    {isRtl ? `${(Number(roomTypeRate.rate) || 0).toFixed(2)} $` : `$${(Number(roomTypeRate.rate) || 0).toFixed(2)}`}
                   </div>
                 </div>
               ))}

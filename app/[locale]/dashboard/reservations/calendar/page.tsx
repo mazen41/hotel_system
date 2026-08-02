@@ -374,7 +374,7 @@ export default function CalendarPage() {
               <strong>{isRtl ? 'الفترة' : 'Dates'}:</strong> {selected.check_in_date} → {selected.check_out_date}
             </div>
             <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
-              <strong>{tCommon('total')}:</strong> ${selected.total_amount.toFixed(2)}
+              <strong>{tCommon('total')}:</strong> ${(Number(selected.total_amount) || 0).toFixed(2)}
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: isRtl ? 'flex-start' : 'flex-end', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
               <button

@@ -244,7 +244,7 @@ export default function ChargesPage() {
                     </span>
                   </td>
                   <td style={{ padding: '14px 16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
-                    {isRtl ? `${charge.amount.toFixed(2)} $` : `$${charge.amount.toFixed(2)}`}
+                    {isRtl ? `${(Number(charge.amount) || 0).toFixed(2)} $` : `$${(Number(charge.amount) || 0).toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                     {charge.charged_at ? new Date(charge.charged_at!).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US') : '—'}

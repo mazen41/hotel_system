@@ -569,7 +569,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                         {roomType.description || 'No description'}
                       </div>
                       <div style={{ fontSize: '14px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                        ${roomType.base_price ? roomType.base_price.toFixed(2) : '0.00'}/night
+                        ${roomType.base_price ? (Number(roomType.base_price) || 0).toFixed(2) : '0.00'}/night
                       </div>
                     </div>
                   ))}
@@ -586,7 +586,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
               </div>
               {selectedRoomType && (
                 <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-                  Room Type: <strong>{selectedRoomType.name}</strong> (${selectedRoomType.base_price ? selectedRoomType.base_price.toFixed(2) : '0.00'}/night)
+                  Room Type: <strong>{selectedRoomType.name}</strong> (${selectedRoomType.base_price ? (Number(selectedRoomType.base_price) || 0).toFixed(2) : '0.00'}/night)
                 </div>
               )}
             </div>
@@ -646,7 +646,7 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                       {room.room_type?.name || ''}
                     </div>
                     <div style={{ fontSize: '14px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                      ${room.room_type?.base_price ? room.room_type.base_price.toFixed(2) : '0.00'}/night
+                      ${room.room_type?.base_price ? (Number(room.room_type.base_price) || 0).toFixed(2) : '0.00'}/night
                     </div>
                   </div>
                 ))}
@@ -671,32 +671,32 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>Room Rate</span>
                   <span style={{ fontSize: '16px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                    ${pricing.roomRate.toFixed(2)} x {pricing.nights} night{pricing.nights !== 1 ? 's' : ''}
+                    ${(Number(pricing.roomRate) || 0).toFixed(2)} x {pricing.nights} night{pricing.nights !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>Subtotal</span>
                   <span style={{ fontSize: '16px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                    ${pricing.subtotal.toFixed(2)}
+                    ${(Number(pricing.subtotal) || 0).toFixed(2)}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>Taxes (10%)</span>
                   <span style={{ fontSize: '16px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                    ${pricing.taxes.toFixed(2)}
+                    ${(Number(pricing.taxes) || 0).toFixed(2)}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>Fees</span>
                   <span style={{ fontSize: '16px', color: 'var(--color-text-primary)', fontWeight: '500' }}>
-                    ${pricing.fees.toFixed(2)}
+                    ${(Number(pricing.fees) || 0).toFixed(2)}
                   </span>
                 </div>
                 <div style={{ height: '1px', background: 'var(--color-border)', margin: '16px 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>Total Amount</span>
                   <span style={{ fontSize: '20px', fontWeight: '700', color: '#6366f1' }}>
-                    ${pricing.totalAmount.toFixed(2)}
+                    ${(Number(pricing.totalAmount) || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -751,10 +751,10 @@ export default function ReservationModal({ onClose, onSuccess, preSelectedGuestI
                   Pricing
                 </h4>
                 <div style={{ fontWeight: '700', color: '#6366f1', fontSize: '24px' }}>
-                  ${pricing.totalAmount.toFixed(2)}
+                  ${(Number(pricing.totalAmount) || 0).toFixed(2)}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
-                  ${pricing.roomRate.toFixed(2)} × {pricing.nights} night{pricing.nights !== 1 ? 's' : ''} + ${pricing.taxes.toFixed(2)} taxes
+                  ${(Number(pricing.roomRate) || 0).toFixed(2)} × {pricing.nights} night{pricing.nights !== 1 ? 's' : ''} + ${(Number(pricing.taxes) || 0).toFixed(2)} taxes
                 </div>
               </div>
 

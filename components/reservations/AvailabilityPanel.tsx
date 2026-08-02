@@ -354,7 +354,7 @@ export default function AvailabilityPanel({ onClose, onSelectRoom }: Availabilit
                         Price per Night
                       </div>
                       <div style={{ fontSize: '16px', color: 'var(--color-text-primary)', fontWeight: '600' }}>
-                        ${room.room_type?.base_price ? room.room_type.base_price.toFixed(2) : '0.00'}
+                        ${room.room_type?.base_price ? (Number(room.room_type.base_price) || 0).toFixed(2) : '0.00'}
                       </div>
                     </div>
 

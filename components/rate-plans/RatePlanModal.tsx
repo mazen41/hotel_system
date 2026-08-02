@@ -546,7 +546,7 @@ export default function RatePlanModal({ onClose, onSuccess, editRatePlan }: Rate
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                           <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                            {ui.basePriceHelp}: {isRtl ? `${roomType.base_price.toFixed(2)} $` : `$${roomType.base_price.toFixed(2)}`}
+                            {ui.basePriceHelp}: {isRtl ? `${(Number(roomType.base_price) || 0).toFixed(2)} $` : `$${(Number(roomType.base_price) || 0).toFixed(2)}`}
                           </span>
                           {roomType.meal_plan && (
                             <span style={{

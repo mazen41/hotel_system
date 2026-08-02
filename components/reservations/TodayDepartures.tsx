@@ -49,7 +49,7 @@ export default function TodayDepartures({ limit = 10, showHeader = true }: Today
         // Handle outstanding balance error
         if (error.status === 409 && (error as any).balance_due) {
           const balanceDue = (error as any).balance_due;
-          setSuccessMessage(`Cannot check out with outstanding balance: $${balanceDue.toFixed(2)}`);
+          setSuccessMessage(`Cannot check out with outstanding balance: $${(Number(balanceDue) || 0).toFixed(2)}`);
         } else {
           setSuccessMessage(error.message || 'Failed to complete express check-out');
         }
@@ -147,7 +147,7 @@ export default function TodayDepartures({ limit = 10, showHeader = true }: Today
                 Nights: {reservation.nights}
               </div>
               <div style={{ fontSize: '14px', fontWeight: '600', color: reservation.balance_due > 0 ? '#ef4444' : '#22c55e' }}>
-                {reservation.balance_due > 0 ? `Due: $${reservation.balance_due.toFixed(2)}` : 'Paid'}
+                {reservation.balance_due > 0 ? `Due: $${(Number(reservation.balance_due) || 0).toFixed(2)}` : 'Paid'}
               </div>
             </div>
 

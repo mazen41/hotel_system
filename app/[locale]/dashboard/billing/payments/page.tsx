@@ -245,7 +245,7 @@ export default function PaymentsPage() {
                     {getPaymentMethodLabel(payment.payment_method)}
                   </td>
                   <td style={{ padding: '14px 16px', fontWeight: '600', color: '#22c55e' }}>
-                    {isRtl ? `${payment.amount.toFixed(2)} $` : `$${payment.amount.toFixed(2)}`}
+                    {isRtl ? `${(Number(payment.amount) || 0).toFixed(2)} $` : `$${(Number(payment.amount) || 0).toFixed(2)}`}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{
